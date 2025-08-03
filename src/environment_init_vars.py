@@ -6,7 +6,7 @@ if __name__ == "__main__":
 from logging import getLogger
 from pathlib import Path
 
-from src.environment_settings import Settings
+from environment_settings import Settings
 
 logger = getLogger(__name__)
 
@@ -16,3 +16,7 @@ SETTINGS = Settings()  # type: ignore
 
 # Folder paths
 CWD = Path.cwd()
+
+
+OWNER_IDS = {200632489998417929}
+TEST_GUILDS = [1401596917355380826]

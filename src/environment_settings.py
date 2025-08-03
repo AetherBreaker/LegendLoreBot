@@ -6,7 +6,9 @@ if __name__ == "__main__":
 import os
 from logging import getLogger
 from pathlib import Path
+from typing import Annotated
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = getLogger(__name__)
@@ -20,3 +22,5 @@ class Settings(BaseSettings):
     env_file_encoding="utf-8",
     env_ignore_empty=True,
   )
+
+  token: Annotated[str, Field(alias="TOKEN")]

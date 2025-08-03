@@ -141,7 +141,7 @@ DEBUG_LOG_LOC = LOG_LOC_FOLDER / f"{LOGGING_BASE_NAME}_debug.log"
 INFO_LOG_LOC = LOG_LOC_FOLDER / f"{LOGGING_BASE_NAME}.log"
 
 
-LOGGING_TYPE: Literal["daily", "per_run"] = "per_run"
+LOGGING_TYPE: Literal["daily", "per_run"] = "daily"
 
 
 daily_debug_handler = TimedRotatingFileHandler(

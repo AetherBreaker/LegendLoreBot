@@ -10,10 +10,7 @@
             "request": "launch",
             "justMyCode": true,
             "program": "${workspaceFolder}/src/",
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            }
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "Current File",
