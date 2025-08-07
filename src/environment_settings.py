@@ -7,6 +7,7 @@ import os
 from logging import getLogger
 from pathlib import Path
 from typing import Annotated
+from uuid import getnode
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,3 +31,5 @@ class Settings(BaseSettings):
   database_characters_id: Annotated[str, Field(alias="DATABASE_CHARACTERS_ID")]
 
   database_refresh_interval: Annotated[int, Field(alias="DATABASE_REFRESH_INTERVAL")] = 3600
+
+  uid_generator_seed: Annotated[int, Field(alias="UID_GENERATOR_SEED")] = getnode()
