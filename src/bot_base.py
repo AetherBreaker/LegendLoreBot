@@ -1,3 +1,5 @@
+import cogs
+from database.cache import DatabaseCache
 from disnake import Intents, Message
 from disnake.ext.commands import Bot
 from environment_init_vars import OWNER_IDS, TEST_GUILDS
@@ -5,7 +7,10 @@ from environment_init_vars import OWNER_IDS, TEST_GUILDS
 
 class SwallowBot(Bot):
   def __init__(self, *args, **kwargs):
-    self.load_extension("cogs.cog_example")
+    self.database = DatabaseCache()
+
+    self.load_extensions(cogs.__name__)
+
     intents = Intents.default()
     intents.message_content = True
     super().__init__(
@@ -22,7 +27,5 @@ class SwallowBot(Bot):
 
   async def on_message(self, message: Message):
     print(f"Message from {message.author}: {message.content}")
-    if message.content.lower().startswith(
-      "what is the airspeed velocity of an unladen swallow?".strip().lower()
-    ):
+    if message.content.lower().startswith("what is the airspeed velocity of an unladen swallow?".strip().lower()):
       await message.channel.send("What do you mean? African or European swallow?")
