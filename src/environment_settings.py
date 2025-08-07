@@ -24,3 +24,9 @@ class Settings(BaseSettings):
   )
 
   token: Annotated[str, Field(alias="TOKEN")]
+  database_id: Annotated[str, Field(alias="DATABASE_ID")]
+  database_guilds_id: Annotated[str, Field(alias="DATABASE_GUILDS_ID")]
+  database_users_id: Annotated[str, Field(alias="DATABASE_USERS_ID")]
+  database_characters_id: Annotated[str, Field(alias="DATABASE_CHARACTERS_ID")]
+
+  database_refresh_interval: Annotated[int, Field(alias="DATABASE_REFRESH_INTERVAL")] = 3600
