@@ -237,4 +237,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-/discord-mizara-bot-db-25689788a9eb.json
+/discord-mizara-bot-db-*.json
+/bot-db-key.json

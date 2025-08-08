@@ -36,5 +36,7 @@ class SwallowBot(Bot):
 
   async def on_message(self, message: Message):
     print(f"Message from {message.author}: {message.content}")
-    if message.content.lower().startswith("what is the airspeed velocity of an unladen swallow?".strip().lower()):
+    if message.content.lower().startswith(
+      "what is the airspeed velocity of an unladen swallow?".strip().lower()
+    ):
       await message.channel.send("What do you mean? African or European swallow?")
