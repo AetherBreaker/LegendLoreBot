@@ -15,9 +15,9 @@ logger = getLogger(__name__)
 
 
 class SwallowBot(Bot):
-  def __init__(self, *args, **kwargs):
-    self.database = DatabaseCache()
+  database: DatabaseCache
 
+  def __init__(self, *args, **kwargs):
     self.load_extensions(cogs.__name__)
 
     intents = Intents.default()
@@ -32,11 +32,10 @@ class SwallowBot(Bot):
     )
 
   async def on_ready(self):
+    self.database = DatabaseCache()
     print(f"Logged on as {self.user}!")
 
   async def on_message(self, message: Message):
     print(f"Message from {message.author}: {message.content}")
-    if message.content.lower().startswith(
-      "what is the airspeed velocity of an unladen swallow?".strip().lower()
-    ):
+    if message.content.lower().startswith("what is the airspeed velocity of an unladen swallow?".strip().lower()):
       await message.channel.send("What do you mean? African or European swallow?")
