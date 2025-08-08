@@ -1,4 +1,10 @@
+if __name__ == "__main__":
+  from logging_config import configure_logging
+
+  configure_logging()
+
 from asyncio import sleep
+from logging import getLogger
 from typing import TYPE_CHECKING
 
 from disnake.ext.commands import Cog
@@ -7,6 +13,8 @@ from environment_init_vars import SETTINGS
 
 if TYPE_CHECKING:
   from bot_base import SwallowBot
+
+logger = getLogger(__name__)
 
 
 class DatabaseCacheCog(Cog):

@@ -1,3 +1,9 @@
+if __name__ == "__main__":
+  from logging_config import configure_logging
+
+  configure_logging()
+
+from logging import getLogger
 from typing import Annotated
 from uuid import UUID, uuid1
 
@@ -8,6 +14,8 @@ from pydantic.types import UuidVersion
 
 from validation import CustomBaseModel
 from validation.models import GuildID, UserID
+
+logger = getLogger(__name__)
 
 
 class CharacterDBEntryModel(CustomBaseModel):

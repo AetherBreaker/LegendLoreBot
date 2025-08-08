@@ -1,4 +1,13 @@
+if __name__ == "__main__":
+  from logging_config import configure_logging
+
+  configure_logging()
+
+from logging import getLogger
+
 from pydantic import BaseModel, ConfigDict
+
+logger = getLogger(__name__)
 
 
 class CustomBaseModel(BaseModel):

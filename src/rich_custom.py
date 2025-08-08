@@ -1,5 +1,5 @@
 if __name__ == "__main__":
-  from src.logging_config import configure_logging
+  from logging_config import configure_logging
 
   configure_logging()
 
@@ -11,8 +11,7 @@ from threading import RLock
 from types import TracebackType
 from typing import IO, Any, Dict, Literal, Optional, Self, TextIO, Union
 
-from src.logging_config import RICH_CONSOLE
-
+from logging_config import RICH_CONSOLE
 from rich import get_console
 from rich.console import Console, RenderableType
 from rich.control import Control
@@ -47,7 +46,9 @@ class ChoicePrompt(PromptBase[int]):
   tab_length = 2
 
   response_type = int
-  validate_error_message = "[prompt.invalid]Please enter a valid integer number that corresponds to one of the choices."
+  validate_error_message = (
+    "[prompt.invalid]Please enter a valid integer number that corresponds to one of the choices."
+  )
   choices: dict[int, Any]
 
   def __init__(
@@ -61,13 +62,17 @@ class ChoicePrompt(PromptBase[int]):
     allow_multiple_choices: bool | list[str] = False,
   ) -> None:
     self.console = console or get_console()
-    self.prompt = Text.from_markup(prompt, style="prompt", end="\n") if isinstance(prompt, str) else prompt
-    self.choices = {choice_int: choice for choice_int, choice in enumerate(choices, start=1)}  # type: ignore
+    self.prompt = (
+      Text.from_markup(prompt, style="prompt", end="\n") if isinstance(prompt, str) else prompt
+    )
+    self.choices = dict(enumerate(choices, start=1))  # type: ignore
     self.show_default = show_default
     self.show_choices = show_choices
 
     self.allow_multiple_choices = bool(allow_multiple_choices)
-    self.allowed_choices = allow_multiple_choices if isinstance(allow_multiple_choices, list) else None
+    self.allowed_choices = (
+      allow_multiple_choices if isinstance(allow_multiple_choices, list) else None
+    )
 
   def make_prompt(self, default: DefaultType) -> Text:  # type: ignore
     """Make prompt text.
@@ -88,8 +93,10 @@ class ChoicePrompt(PromptBase[int]):
     prompt.append(self.prompt_suffix)
 
     if self.show_choices:
-      _choices = f"\n{self.tab_length*" "}".join(f"[{i}]: {choice}" for i, choice in self.choices.items())
-      choices = f'\n{self.tab_length * " "}{_choices}\n'
+      _choices = f"\n{self.tab_length * ' '}".join(
+        f"[{i}]: {choice}" for i, choice in self.choices.items()
+      )
+      choices = f"\n{self.tab_length * ' '}{_choices}\n"
       prompt.append(choices, "prompt.choices")
 
     return prompt
@@ -132,7 +139,11 @@ class ChoicePrompt(PromptBase[int]):
     if self.choices is not None and not self.check_choice(value):
       raise InvalidResponse(self.illegal_choice_message)
 
-    return_value = [self.choices[int(i)] for i in value] if self.allow_multiple_choices else self.choices[int(return_value)]  # type: ignore
+    return_value = (
+      [self.choices[int(i)] for i in value]
+      if self.allow_multiple_choices
+      else self.choices[int(return_value)]  # type: ignore
+    )
 
     return return_value
 
@@ -187,7 +198,9 @@ class ChoicePrompt(PromptBase[int]):
       self.pre_prompt()
       prompt = self.make_prompt(default)
       style = self.console.get_style("prompt")
-      self._shape = Segment.get_shape(self.console.render_lines(prompt, self.console.options, style=style, pad=False))
+      self._shape = Segment.get_shape(
+        self.console.render_lines(prompt, self.console.options, style=style, pad=False)
+      )
       value = self.get_input(self.console, prompt, False, stream=stream)
       self.clear_prompt()
       if value == "" and default != ...:
@@ -218,15 +231,24 @@ class RemainingColumn(ProgressColumn):
   def __init__(
     self,
     title: str,
-    items: dict[RemainingItemsIDType, RemainingItemsDisplayType] | list[RemainingItemsIDType | RemainingItemsDisplayType],
+    items: dict[RemainingItemsIDType, RemainingItemsDisplayType]
+    | list[RemainingItemsIDType | RemainingItemsDisplayType],
     vertical_padding: int = 0,
     horizontal_padding: int = 1,
     *args,
     **kwargs,
   ):
     self.title = title
-    self.items = {k: str(v) for k, v in items.items()} if isinstance(items, dict) else {i: str(i) for i in items}
-    self.render_items = {k: str(v) for k, v in items.items()} if isinstance(items, dict) else {i: str(i) for i in items}
+    self.items = (
+      {k: str(v) for k, v in items.items()}
+      if isinstance(items, dict)
+      else {i: str(i) for i in items}
+    )
+    self.render_items = (
+      {k: str(v) for k, v in items.items()}
+      if isinstance(items, dict)
+      else {i: str(i) for i in items}
+    )
     self.num_cols = 6
     self._is_empty = False
     self.vertical_padding = vertical_padding
@@ -468,7 +490,12 @@ class CustomTaskID(int):
   def __enter__(self) -> Self:
     return self
 
-  def __exit__(self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: TracebackType | None):
+  def __exit__(
+    self,
+    exc_type: type[BaseException] | None,
+    exc_value: BaseException | None,
+    traceback: TracebackType | None,
+  ):
     remove = self.remove
     if remove:
       self.remove_func()

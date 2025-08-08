@@ -1,8 +1,16 @@
+if __name__ == "__main__":
+  from logging_config import configure_logging
+
+  configure_logging()
+
+from logging import getLogger
 from typing import Optional
 
 from bot_base import SwallowBot
 from disnake import Member, User
 from disnake.ext.commands import Cog, Context, command
+
+logger = getLogger(__name__)
 
 
 class ExampleCog(Cog):

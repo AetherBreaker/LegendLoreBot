@@ -1,5 +1,5 @@
 if __name__ == "__main__":
-  from src.logging_config import configure_logging
+  from logging_config import configure_logging
 
   configure_logging()
 
