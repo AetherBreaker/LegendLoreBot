@@ -11,9 +11,9 @@ logger = getLogger(__name__)
 
 
 class ColNameEnum(StrEnum):
-  __exclude__ = []
-  __init_include__ = []
-  __index_items__ = []
+  __exclude__: list[str] = []
+  __init_include__: list[str] = []
+  __index_items__: list[str] = []
 
   @classmethod
   def ordered_column_names(cls, *columns: str) -> list[str]:
