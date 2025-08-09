@@ -239,3 +239,4 @@ $RECYCLE.BIN/
 *.lnk
 /discord-mizara-bot-db-*.json
 /bot-db-key.json
+logs/
