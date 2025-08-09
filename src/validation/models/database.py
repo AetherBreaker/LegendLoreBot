@@ -4,18 +4,22 @@ if __name__ == "__main__":
   configure_logging()
 
 from logging import getLogger
-from typing import Annotated
+from typing import Annotated, NewType
 from uuid import UUID, uuid1
 
 from environment_init_vars import SETTINGS
 from number_types.character_money import CopperPieces, GoldPieces, PlatinumPieces, SilverPieces
 from number_types.downtime import DowntimeStockpile
+from number_types.server_money import GenericMoney
 from pydantic.types import UuidVersion
 
 from validation import CustomBaseModel
-from validation.models import GuildID, UserID
 
 logger = getLogger(__name__)
+
+
+GuildID = NewType("GuildID", str)
+UserID = NewType("UserID", str)
 
 
 class CharacterDBEntryModel(CustomBaseModel):
@@ -30,3 +34,15 @@ class CharacterDBEntryModel(CustomBaseModel):
   money_sp: SilverPieces = SilverPieces(0)
   money_cp: CopperPieces = CopperPieces(0)
   downtime_stockpiled: DowntimeStockpile = DowntimeStockpile(0)
+
+
+class GuildDBEntryModel(CustomBaseModel):
+  guild_id: GuildID
+  guild_name: str
+
+
+class UserDBEntryModel(CustomBaseModel):
+  user_id: UserID
+  guild_id: GuildID
+  user_name: str
+  server_money: GenericMoney = GenericMoney(0)

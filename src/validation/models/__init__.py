@@ -4,7 +4,5 @@ if __name__ == "__main__":
   configure_logging()
 
 from logging import getLogger
-from typing import NewType
 
-GuildID = NewType("GuildID", str)
-UserID = NewType("UserID", str)
+logger = getLogger(__name__)
