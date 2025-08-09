@@ -240,3 +240,4 @@ $RECYCLE.BIN/
 /discord-mizara-bot-db-*.json
 /bot-db-key.json
 logs/
+*.csv
