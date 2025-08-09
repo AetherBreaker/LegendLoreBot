@@ -18,8 +18,8 @@ from validation import CustomBaseModel
 logger = getLogger(__name__)
 
 
-GuildID = NewType("GuildID", str)
-UserID = NewType("UserID", str)
+GuildID = NewType("GuildID", int)
+UserID = NewType("UserID", int)
 
 
 class CharacterDBEntryModel(CustomBaseModel):
