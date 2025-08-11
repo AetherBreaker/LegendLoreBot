@@ -6,8 +6,8 @@ if __name__ == "__main__":
 from logging import getLogger
 from typing import Optional
 
+from autocomplete.command_autocompleters import autocomp_charname
 from bot_base import SwallowBot
-from command_autocompleters import autocomp_charname
 from disnake import ApplicationCommandInteraction, Member, User
 from disnake.ext.commands import Cog, Param, message_command, slash_command, user_command
 
