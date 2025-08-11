@@ -13,5 +13,6 @@ paramiko
 rich
 disnake
 rapidfuzz
-gspread-asyncio
 aiologic
+gspread
+aiorwlock
