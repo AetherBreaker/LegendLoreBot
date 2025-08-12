@@ -33,7 +33,7 @@ class DatabaseCacheCog(Cog):
     """
     Periodically refresh the database cache.
     """
-    ...
+    await self.bot.database._refresh_cache()
     # TODO
 
   @refresh_cache_task.before_loop
