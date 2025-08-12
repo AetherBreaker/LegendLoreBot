@@ -19,25 +19,27 @@ from validation import CustomBaseModel
 
 logger = getLogger(__name__)
 
-rates = {
-  3: (2, 4),
-  4: (4, 8),
-  5: (6, 12),
-  6: (10, 20),
-  7: (12, 24),
-  8: (15, 30),
-  9: (18, 36),
-  10: (22, 44),
-  11: (26, 52),
-  12: (30, 60),
-  13: (34, 68),
-  14: (40, 80),
-  15: (48, 96),
-  16: (58, 116),
-  17: (62, 124),
-  18: (68, 136),
-  19: (76, 152),
-  20: (88, 176),
+
+rates_flipped = {
+  (0, 0): 2,
+  (2, 4): 3,
+  (4, 8): 4,
+  (6, 12): 5,
+  (10, 20): 6,
+  (12, 24): 7,
+  (15, 30): 8,
+  (18, 36): 9,
+  (22, 44): 10,
+  (26, 52): 11,
+  (30, 60): 12,
+  (34, 68): 13,
+  (40, 80): 14,
+  (48, 96): 15,
+  (58, 116): 16,
+  (62, 124): 17,
+  (68, 136): 18,
+  (76, 152): 19,
+  (88, 176): 20,
 }
 
 
@@ -58,7 +60,14 @@ class CharacterDBEntryModel(CustomBaseModel):
 
   @property
   def level(self):
-    return (self.milestones // 100) + 1
+    rate_idx = 0 if self.level_rate == "medium" else 1
+
+    result = 2
+    for rate, level in rates_flipped.items():
+      if self.milestones >= rate[rate_idx]:
+        result = level
+
+    return result
 
 
 class GuildDBEntryModel(CustomBaseModel):
