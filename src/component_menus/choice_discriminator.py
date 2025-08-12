@@ -3,11 +3,11 @@ if __name__ == "__main__":
 
   configure_logging()
 
-from collections.abc import Sequence
 from logging import getLogger
 
 from disnake import ApplicationCommandInteraction, ButtonStyle, MessageInteraction, SelectOption
 from disnake.ui import Button, StringSelect, View, button, string_select
+from typing_custom import CharacterUID
 
 logger = getLogger(__name__)
 
@@ -20,29 +20,17 @@ class DiscriminateChoices(View):
 
   def __init__(
     self,
-    inter: ApplicationCommandInteraction,
-    uid_choices: dict["CharacterUID", str],  # pyright: ignore[reportUndefinedVariable]  # noqa: F821
+    uid_choices: dict[CharacterUID, str],
     *args,
     submit_button: bool = True,
     **kwargs,
   ):
-    self._root_interaction = inter
+    self._choices = [SelectOption(label=name, value=str(uid)) for uid, name in uid_choices.items()]
 
-    self._choices = uid_choices
-
-    self.add_item(
-      CharacterUIDSelector(
-        options=self._choices,
-      )
-    )
+    self.add_item(CharacterUIDSelector(view=self, options=self._choices, placeholder="Select a character UID..."))
 
     if submit_button:
-      self.add_item(
-        SubmitButton(
-          label="Submit",
-          style=ButtonStyle.success,
-        )
-      )
+      self.add_item(SubmitButton(view=self, label="Submit", style=ButtonStyle.success))
 
     super().__init__(*args, **kwargs)
 
@@ -52,13 +40,26 @@ class DiscriminateChoices(View):
   @button(label="Submit", style=ButtonStyle.success, disabled=True, row=1)
   async def submit(self, button: Button, inter: MessageInteraction): ...
 
-  async def send_self(self):
-    await self._root_interaction.send("Please select an option:", view=self)
+  async def send_self(self, inter: ApplicationCommandInteraction) -> None:
+    await inter.send("Please select an option:", view=self, ephemeral=True)
 
 
 class CharacterUIDSelector(StringSelect):
+  def __init__(
+    self,
+    view: View,
+    *args,
+    **kwargs,
+  ) -> None:
+    self._view = view
+    super().__init__(*args, **kwargs)
+
   async def callback(self, inter: MessageInteraction): ...
 
 
 class SubmitButton(Button):
+  def __init__(self, view: View, *args, **kwargs) -> None:
+    self._view = view
+    super().__init__(*args, **kwargs)
+
   async def callback(self, inter: MessageInteraction): ...
