@@ -19,6 +19,27 @@ from validation import CustomBaseModel
 
 logger = getLogger(__name__)
 
+rates = {
+  3: (2, 4),
+  4: (4, 8),
+  5: (6, 12),
+  6: (10, 20),
+  7: (12, 24),
+  8: (15, 30),
+  9: (18, 36),
+  10: (22, 44),
+  11: (26, 52),
+  12: (30, 60),
+  13: (34, 68),
+  14: (40, 80),
+  15: (48, 96),
+  16: (58, 116),
+  17: (62, 124),
+  18: (68, 136),
+  19: (76, 152),
+  20: (88, 176),
+}
+
 
 class CharacterDBEntryModel(CustomBaseModel):
   character_uid: Annotated[UUID1, Field(default_factory=partial(uuid1, SETTINGS.uid_generator_seed))]
