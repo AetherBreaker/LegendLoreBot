@@ -281,6 +281,23 @@ class CacheViewBase[ModelT: CustomBaseModel]:
 
     await self._core.queue_db_api_update(update_data)
 
+  async def append_row(self, values: ModelT) -> None:
+    index = tuple(getattr(values, col) for col in self._cache_index)
+
+    row = Series(values.model_dump(), dtype=object)
+    sheets_row = Series(values.model_dump(mode="json"), dtype=object)
+
+    async with self._core._read_write_lock.writer_lock:
+      self._cache.loc[index, :] = row
+
+    await self._core.queue_db_api_update(
+      ValueRange(
+        range=self._range_format.format(start=f"R{len(self._cache) + 2}C1", end=f"C{len(self._columns)}"),
+        majorDimension=Dimension.rows,
+        values=[sheets_row.tolist()],
+      )
+    )
+
 
 class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   _range_format_single = "Guilds!{cell}}"
@@ -297,6 +314,9 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
 
   async def update_row(self, index: DatabaseGuildsIndex, values: Sequence[Any] | GuildDBEntryModel) -> None:
     return await super().update_row(index, values)
+
+  async def append_row(self, values: GuildDBEntryModel) -> None:
+    return await super().append_row(values)
 
 
 class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
@@ -325,6 +345,9 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
 
   async def update_row(self, index: DatabaseUsersIndex, values: Sequence[Any] | UserDBEntryModel) -> None:
     return await super().update_row(index, values)
+
+  async def append_row(self, values: UserDBEntryModel) -> None:
+    return await super().append_row(values)
 
 
 class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
@@ -364,3 +387,6 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
 
   async def update_row(self, index: DatabaseCharactersIndex, values: Sequence[Any] | CharacterDBEntryModel) -> None:
     return await super().update_row(index, values)
+
+  async def append_row(self, values: CharacterDBEntryModel) -> None:
+    return await super().append_row(values)
