@@ -7,6 +7,7 @@ from typing import Any, Concatenate
 
 class AutocompCache[Val_T](UserDict):
   def __init__(self, *args: Any, **kwargs: Any) -> None:
+    super().__init__(*args, **kwargs)
     self.data: dict[Hashable, Val_T]
 
   def __setitem__(self, key: Hashable, item: Val_T) -> None:
