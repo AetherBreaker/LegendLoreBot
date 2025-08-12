@@ -254,7 +254,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
       )
     )
 
-  async def write_row(self, index, values: Sequence[Any] | ModelT) -> None:
+  async def update_row(self, index, values: Sequence[Any] | ModelT) -> None:
     row_number = await self.process_index(index)
 
     if isinstance(values, self._model):
@@ -295,8 +295,8 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   async def write_value(self, index: DatabaseGuildsIndex, column: DatabaseGuildsColumns, value: Any) -> None:
     return await super().write_value(index, column, value)
 
-  async def write_row(self, index: DatabaseGuildsIndex, values: Sequence[Any] | GuildDBEntryModel) -> None:
-    return await super().write_row(index, values)
+  async def update_row(self, index: DatabaseGuildsIndex, values: Sequence[Any] | GuildDBEntryModel) -> None:
+    return await super().update_row(index, values)
 
 
 class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
@@ -323,8 +323,8 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
   async def write_value(self, index: DatabaseUsersIndex, column: DatabaseUsersColumns, value: Any) -> None:
     return await super().write_value(index, column, value)
 
-  async def write_row(self, index: DatabaseUsersIndex, values: Sequence[Any] | UserDBEntryModel) -> None:
-    return await super().write_row(index, values)
+  async def update_row(self, index: DatabaseUsersIndex, values: Sequence[Any] | UserDBEntryModel) -> None:
+    return await super().update_row(index, values)
 
 
 class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
@@ -362,5 +362,5 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
   async def write_value(self, index: DatabaseCharactersIndex, column: DatabaseCharactersColumns, value: Any) -> None:
     return await super().write_value(index, column, value)
 
-  async def write_row(self, index: DatabaseCharactersIndex, values: Sequence[Any] | CharacterDBEntryModel) -> None:
-    return await super().write_row(index, values)
+  async def update_row(self, index: DatabaseCharactersIndex, values: Sequence[Any] | CharacterDBEntryModel) -> None:
+    return await super().update_row(index, values)
