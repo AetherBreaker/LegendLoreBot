@@ -24,6 +24,7 @@ class CharacterDBEntryModel(CustomBaseModel):
   user_id: Annotated[UserID, PlainSerializer(str, when_used="json")]
   guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   character_name: str
+  sheet_link: HttpUrl
   milestones: int = 0
   mythic_trials: int = 0
   money_pp: PlatinumPieces = PlatinumPieces(0)
