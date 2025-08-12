@@ -27,6 +27,7 @@ class CharacterDBEntryModel(CustomBaseModel):
   character_name: str
   sheet_link: HttpUrl
   milestones: int = 0
+  level_rate: Literal["medium", "slow"] = "medium"
   mythic_trials: int = 0
   money_pp: PlatinumPieces = PlatinumPieces(0)
   money_gp: GoldPieces = GoldPieces(0)

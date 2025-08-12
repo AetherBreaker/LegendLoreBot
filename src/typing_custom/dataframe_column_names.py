@@ -95,6 +95,7 @@ class DatabaseCharactersColumns(ColNameEnum):
   character_name = "character_name"
   sheet_link = "sheet_link"
   milestones = "milestones"
+  level_rate = "level_rate"
   mythic_trials = "mythic_trials"
   money_pp = "money_pp"
   money_gp = "money_gp"

@@ -4,10 +4,10 @@ if __name__ == "__main__":
   configure_logging()
 
 from logging import getLogger
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from disnake import ApplicationCommandInteraction, GuildCommandInteraction
-from disnake.ext.commands import Cog, slash_command
+from disnake.ext.commands import Cog, Param, slash_command
 from pydantic import ValidationError
 from validation.models.database import CharacterDBEntryModel
 
@@ -30,13 +30,20 @@ class StaffCommands(Cog):
   async def characters(self, _: GuildCommandInteraction): ...
 
   @characters.sub_command()
-  async def add(self, inter: GuildCommandInteraction, character_name: str, sheetlink: str):
+  async def add(
+    self,
+    inter: GuildCommandInteraction,
+    character_name: str,
+    sheetlink: str,
+    level_rate: Literal["medium", "slow"] = Param(choices=["medium", "slow"], default="medium"),
+  ):
     try:
       new_entry = CharacterDBEntryModel(
         user_id=inter.author.id,
         guild_id=inter.guild_id,
         character_name=character_name,
         sheet_link=sheetlink,  # type: ignore
+        level_rate=level_rate,
       )
 
     except ValidationError as e:
