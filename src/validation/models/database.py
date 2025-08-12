@@ -5,7 +5,7 @@ if __name__ == "__main__":
 
 from functools import partial
 from logging import getLogger
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import uuid1
 
 from environment_init_vars import SETTINGS
@@ -34,6 +34,10 @@ class CharacterDBEntryModel(CustomBaseModel):
   money_sp: SilverPieces = SilverPieces(0)
   money_cp: CopperPieces = CopperPieces(0)
   downtime_stockpiled: DowntimeStockpile = DowntimeStockpile(0)
+
+  @property
+  def level(self):
+    return (self.milestones // 100) + 1
 
 
 class GuildDBEntryModel(CustomBaseModel):
