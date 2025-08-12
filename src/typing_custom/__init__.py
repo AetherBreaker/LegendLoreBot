@@ -8,12 +8,11 @@ from typing import TypedDict
 from uuid import UUID
 
 from gspread.utils import DateTimeOption, Dimension, ValueInputOption, ValueRenderOption
-from pydantic import GetCoreSchemaHandler
-from pydantic_core import CoreSchema
 
 logger = getLogger(__name__)
-type UserID = str
-type GuildID = str
+type UserID = int
+type GuildID = int
+type CharacterUID = UUID
 
 
 type SheetsValue = int | float | str
@@ -35,7 +34,7 @@ class ValuesBatchUpdateBody(TypedDict):
   data: list[ValueRange]
 
 
-class CharacterUID(UUID):
-  @classmethod
-  def __get_pydantic_core_schema__(cls, _, handler: GetCoreSchemaHandler) -> CoreSchema:
-    return handler(UUID)
+# class CharacterUID(UUID):
+#   @classmethod
+#   def __get_pydantic_core_schema__(cls, _, handler: GetCoreSchemaHandler) -> CoreSchema:
+#     return handler(UUID)

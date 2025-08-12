@@ -258,9 +258,11 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     row_number = await self.process_index(index)
 
     if isinstance(values, self._model):
-      row = Series(values.model_dump(mode="json"), dtype=object)
+      row = Series(values.model_dump(), dtype=object)
+      sheets_row = Series(values.model_dump(mode="json"), dtype=object)
     elif isinstance(values, Sequence):
       row = Series(values, dtype=object, index=self._columns.all_columns())
+      sheets_row = row.copy()
     else:
       raise TypeError(f"{type(values)} does not match the expected type of Sequence[Any] or {self._model}")
 
@@ -274,7 +276,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     update_data = ValueRange(
       range=self._range_format.format(start=f"R{row_number}C1", end=f"C{len(self._columns)}"),
       majorDimension=Dimension.rows,
-      values=[row.tolist()],
+      values=[sheets_row.tolist()],
     )
 
     await self._core.queue_db_api_update(update_data)
