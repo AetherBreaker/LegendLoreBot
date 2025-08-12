@@ -292,7 +292,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
 
     await self._core.queue_db_api_update(
       ValueRange(
-        range=self._range_format.format(start=f"R{len(self._cache) + 2}C1", end=f"C{len(self._columns)}"),
+        range=self._range_format.format(start=f"R{len(self._cache) + 1}C1", end=f"C{len(self._columns)}"),
         majorDimension=Dimension.rows,
         values=[sheets_row.tolist()],
       )
