@@ -20,6 +20,8 @@ logger = getLogger(__name__)
 class DatabaseCacheCog(Cog):
   def __init__(self, bot: "SwallowBot") -> None:
     self.bot = bot
+    self.refresh_cache_task.start()
+    self.write_changes_task.start()
 
   def cog_unload(self) -> None:
     """
@@ -58,3 +60,8 @@ class DatabaseCacheCog(Cog):
     """
     await self.bot.wait_until_ready()
     await sleep(SETTINGS.database_write_interval)
+
+
+def setup(bot: "SwallowBot"):
+  bot.add_cog(DatabaseCacheCog(bot))
+  print("DatabaseCacheCog loaded.")
