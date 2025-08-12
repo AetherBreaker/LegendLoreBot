@@ -3,6 +3,7 @@ if __name__ == "__main__":
 
   configure_logging()
 
+from functools import partial
 from logging import getLogger
 from typing import Annotated
 from uuid import uuid1
@@ -11,7 +12,7 @@ from environment_init_vars import SETTINGS
 from number_types.character_money import CopperPieces, GoldPieces, PlatinumPieces, SilverPieces
 from number_types.downtime import DowntimeStockpile
 from number_types.server_money import GenericMoney
-from pydantic import UUID1, HttpUrl, PlainSerializer
+from pydantic import UUID1, Field, HttpUrl, PlainSerializer
 from typing_custom import GuildID, UserID
 
 from validation import CustomBaseModel
@@ -20,7 +21,7 @@ logger = getLogger(__name__)
 
 
 class CharacterDBEntryModel(CustomBaseModel):
-  character_uid: UUID1 = uuid1(SETTINGS.uid_generator_seed)
+  character_uid: Annotated[UUID1, Field(default_factory=partial(uuid1, SETTINGS.uid_generator_seed))]
   user_id: Annotated[UserID, PlainSerializer(str, when_used="json")]
   guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   character_name: str
