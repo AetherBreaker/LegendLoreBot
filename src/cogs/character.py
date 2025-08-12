@@ -7,7 +7,7 @@ from logging import getLogger
 from typing import TYPE_CHECKING, Optional
 
 from autocomplete.command_autocompleters import autocomp_charname
-from disnake import ApplicationCommandInteraction, Member, User
+from disnake import ApplicationCommandInteraction, Embed, Member, User
 from disnake.ext.commands import Cog, Param, message_command, slash_command, user_command
 
 if TYPE_CHECKING:
@@ -30,7 +30,8 @@ class CharacterTracking(Cog):
     self,
     inter: ApplicationCommandInteraction,
     character_name: str = Param(autocomplete=autocomp_charname),
-  ): ...
+  ):
+    test = Embed()
 
 
 def setup(bot: "SwallowBot"):
