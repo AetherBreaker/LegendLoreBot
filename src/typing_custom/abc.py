@@ -7,6 +7,8 @@ from logging import getLogger
 
 from aiologic import Lock
 
+logger = getLogger(__name__)
+
 
 class SingletonType(type):
   __shared_instance_lock__: Lock

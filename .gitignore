@@ -241,3 +241,4 @@ $RECYCLE.BIN/
 /bot-db-key.json
 logs/
 *.csv
+max_width.txt
