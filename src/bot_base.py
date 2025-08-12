@@ -38,5 +38,5 @@ class SwallowBot(Bot):
 
   async def on_ready(self):
     self.database = DatabaseCache()
-    await self.database._refresh_cache()
+    await self.database.refresh_cache()
     print(f"Logged on as {self.user}!")

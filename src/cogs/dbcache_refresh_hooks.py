@@ -33,7 +33,7 @@ class DatabaseCacheCog(Cog):
     """
     Periodically refresh the database cache.
     """
-    await self.bot.database._refresh_cache()
+    await self.bot.database.refresh_cache()
     # TODO
 
   @refresh_cache_task.before_loop
@@ -43,3 +43,18 @@ class DatabaseCacheCog(Cog):
     """
     await self.bot.wait_until_ready()
     await sleep(SETTINGS.database_refresh_interval)
+
+  @loop(seconds=SETTINGS.database_write_interval)
+  async def write_changes_task(self) -> None:
+    """
+    Periodically write changes to the database.
+    """
+    await self.bot.database.submit_queued_writes_to_pool()
+
+  @write_changes_task.before_loop
+  async def before_write_changes(self) -> None:
+    """
+    Wait until the bot is ready before starting the write changes task.
+    """
+    await self.bot.wait_until_ready()
+    await sleep(SETTINGS.database_write_interval)

@@ -31,5 +31,6 @@ class Settings(BaseSettings):
   database_characters_id: Annotated[str, Field(alias="DATABASE_CHARACTERS_ID")]
 
   database_refresh_interval: Annotated[int, Field(alias="DATABASE_REFRESH_INTERVAL")] = 3600
+  database_write_interval: Annotated[int, Field(alias="DATABASE_WRITE_INTERVAL")] = 60
 
   uid_generator_seed: Annotated[int, Field(alias="UID_GENERATOR_SEED")] = getnode()

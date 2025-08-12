@@ -133,7 +133,7 @@ class DatabaseCache(metaclass=SingletonType):
     self._api_last_call_time = self.loop.time()
     return
 
-  async def _refresh_cache(self) -> None:
+  async def refresh_cache(self) -> None:
     async with self._api_write_lock, self._read_write_lock.writer_lock:
       await self.wait_for_api()
 
