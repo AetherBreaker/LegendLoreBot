@@ -147,19 +147,36 @@ class DatabaseCache(metaclass=SingletonType):
         },
       )
 
-      guilds_data: list[list[str | int | float]] = result["valueRanges"][0]["values"]
-      users_data: list[list[str | int | float]] = result["valueRanges"][1]["values"]
-      characters_data: list[list[str | int | float]] = result["valueRanges"][2]["values"]
-
-      self.guilds = CacheViewGuilds(
-        raw_data=guilds_data, columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self
-      )
-      self.users = CacheViewUsers(
-        raw_data=users_data, columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self
-      )
-      self.characters = CacheViewCharacters(
-        raw_data=characters_data, columns=DatabaseCharactersColumns, types_model=CharacterDBEntryModel, cache_core=self
-      )
+      try:
+        guilds_data: list[list[str | int | float]] = result["valueRanges"][0]["values"]
+        self.guilds = CacheViewGuilds(
+          raw_data=guilds_data, columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self
+        )
+      except KeyError:
+        self.guilds = CacheViewGuilds(
+          raw_data=[], columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self
+        )
+      try:
+        users_data: list[list[str | int | float]] = result["valueRanges"][1]["values"]
+        self.users = CacheViewUsers(
+          raw_data=users_data, columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self
+        )
+      except KeyError:
+        self.users = CacheViewUsers(
+          raw_data=[], columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self
+        )
+      try:
+        characters_data: list[list[str | int | float]] = result["valueRanges"][2]["values"]
+        self.characters = CacheViewCharacters(
+          raw_data=characters_data,
+          columns=DatabaseCharactersColumns,
+          types_model=CharacterDBEntryModel,
+          cache_core=self,
+        )
+      except KeyError:
+        self.characters = CacheViewCharacters(
+          raw_data=[], columns=DatabaseCharactersColumns, types_model=CharacterDBEntryModel, cache_core=self
+        )
 
   async def submit_queued_writes_to_pool(self) -> None:
     if not self.queued_updates:
