@@ -4,6 +4,7 @@ if __name__ == "__main__":
   configure_logging()
 
 from logging import getLogger
+from typing import TYPE_CHECKING
 
 from bot_base import SwallowBot
 from disnake import ApplicationCommandInteraction
@@ -12,8 +13,12 @@ from disnake.ext.commands import Cog, slash_command
 logger = getLogger(__name__)
 
 
+if TYPE_CHECKING:
+  from bot_base import SwallowBot
+
+
 class StaffCommands(Cog):
-  def __init__(self, bot):
+  def __init__(self, bot: "SwallowBot"):
     self.bot = bot
     self._last_member = None
 
@@ -36,6 +41,6 @@ class StaffCommands(Cog):
   ...
 
 
-def setup(bot: SwallowBot):
+def setup(bot: "SwallowBot"):
   bot.add_cog(StaffCommands(bot))
   print("StaffCommands loaded.")

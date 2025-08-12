@@ -4,12 +4,15 @@ if __name__ == "__main__":
   configure_logging()
 
 from logging import getLogger
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from autocomplete.command_autocompleters import autocomp_charname
-from bot_base import SwallowBot
 from disnake import ApplicationCommandInteraction, Member, User
 from disnake.ext.commands import Cog, Param, message_command, slash_command, user_command
+
+if TYPE_CHECKING:
+  from bot_base import SwallowBot
+
 
 logger = getLogger(__name__)
 
@@ -30,6 +33,6 @@ class CharacterTracking(Cog):
   ): ...
 
 
-def setup(bot: SwallowBot):
+def setup(bot: "SwallowBot"):
   bot.add_cog(CharacterTracking(bot))
   print("CharacterTracking loaded.")
