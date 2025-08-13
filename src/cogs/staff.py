@@ -39,6 +39,7 @@ class StaffCommands(Cog):
     level_rate: Literal["medium", "slow"] = Param(choices=["medium", "slow"], default="medium"),
   ):
     try:
+      # TODO add checks if entry overlaps with an existing character in the DB
       new_entry = CharacterDBEntryModel(
         user_id=player.id,
         guild_id=inter.guild_id,
@@ -48,9 +49,12 @@ class StaffCommands(Cog):
       )
 
     except ValidationError as e:
+      # TODO make errors explain why it failed
       logger.error(f"Failed to add character: {e}")
       await inter.send(f"Failed to add character.\n {e}")
       return
+
+    # TODO Add a check for the user id in the user database, and add them as a new entry if missing
 
     await self.bot.database.characters.append_row(new_entry)
 
