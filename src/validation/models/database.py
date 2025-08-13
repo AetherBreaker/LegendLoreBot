@@ -12,15 +12,15 @@ from environment_init_vars import SETTINGS
 from number_types.character_money import CopperPieces, GoldPieces, PlatinumPieces, SilverPieces
 from number_types.downtime import DowntimeStockpile
 from number_types.server_money import GenericMoney
-from pydantic import UUID1, Field, HttpUrl, PlainSerializer
+from pydantic import UUID1, Field, HttpUrl, PlainSerializer, SerializationInfo, SerializerFunctionWrapHandler, model_serializer
 from typing_custom import GuildID, UserID
 
-from validation import CustomBaseModel
+from validation import CustomBaseModel, CustomRootModel
 
 logger = getLogger(__name__)
 
 
-rates_flipped = {
+level_milestone_rates = {
   (0, 0): 2,
   (2, 4): 3,
   (4, 8): 4,
@@ -43,12 +43,27 @@ rates_flipped = {
 }
 
 
+class CharacterClassesModel(CustomRootModel):
+  root: Annotated[dict[str, int], Field(default_factory=dict)]
+  _dumping_json: bool = False
+
+  @model_serializer(mode="wrap", when_used="json")
+  def serialize_as_jsonstr(self, nxt: SerializerFunctionWrapHandler, info: SerializationInfo):
+    if not self._dumping_json:
+      self._dumping_json = True
+      return self.model_dump_json()
+    else:
+      self._dumping_json = False
+      return nxt(self)
+
+
 class CharacterDBEntryModel(CustomBaseModel):
   character_uid: Annotated[UUID1, Field(default_factory=partial(uuid1, SETTINGS.uid_generator_seed))]
   user_id: Annotated[UserID, PlainSerializer(str, when_used="json")]
   guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   character_name: str
   sheet_link: HttpUrl
+  classes: CharacterClassesModel
   milestones: int = 0
   level_rate: Literal["medium", "slow"] = "medium"
   mythic_trials: int = 0
@@ -63,7 +78,7 @@ class CharacterDBEntryModel(CustomBaseModel):
     rate_idx = 0 if self.level_rate == "medium" else 1
 
     result = 2
-    for rate, level in rates_flipped.items():
+    for rate, level in level_milestone_rates.items():
       if self.milestones >= rate[rate_idx]:
         result = level
 

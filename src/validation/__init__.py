@@ -10,6 +10,7 @@ from pydantic import (
   BaseModel,
   ConfigDict,
   ModelWrapValidatorHandler,
+  RootModel,
   ValidationError,
   ValidationInfo,
   ValidatorFunctionWrapHandler,
@@ -18,6 +19,17 @@ from pydantic import (
 )
 
 logger = getLogger(__name__)
+
+
+class CustomRootModel(RootModel):
+  model_config = ConfigDict(
+    populate_by_name=True,
+    use_enum_values=True,
+    validate_default=True,
+    validate_assignment=True,
+    coerce_numbers_to_str=True,
+  )  
+
 
 
 class CustomBaseModel(BaseModel):
