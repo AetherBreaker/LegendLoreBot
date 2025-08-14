@@ -18,7 +18,7 @@ logger = getLogger(__name__)
 
 
 class CharacterTracking(Cog):
-  def __init__(self, bot):
+  def __init__(self, bot: "SwallowBot"):
     self.bot = bot
     self._last_member = None
 

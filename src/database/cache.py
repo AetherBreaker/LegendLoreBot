@@ -205,7 +205,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     types_model: type[ModelT],
     cache_core: DatabaseCache,
   ) -> None:
-    self._cache = build_typed_dataframe(data=raw_data, columns=columns, types_model=types_model)
+    self._cache = build_typed_dataframe(data=raw_data, columns=columns, types_model=types_model)  # type: ignore
     self._cache_index = columns.__index_items__
     self._columns = columns
     self._core = cache_core
