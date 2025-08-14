@@ -17,7 +17,7 @@ from gspread import Client, authorize
 from gspread.http_client import BackOffHTTPClient
 from gspread.utils import DateTimeOption, Dimension, ValueInputOption, ValueRenderOption
 from pandas import DataFrame, MultiIndex, Series
-from typing_custom import ValueRange, ValuesBatchUpdateBody
+from typing_custom import CharacterUID, ValueRange, ValuesBatchUpdateBody
 from typing_custom.abc import SingletonType
 from typing_custom.dataframe_column_names import (
   ColNameEnum,
@@ -129,9 +129,7 @@ class DatabaseCache(metaclass=SingletonType):
     )
     body["data"].append(
       ValueRange(
-        range=self._characters_range_format.format(
-          start="R1C1", end=f"R1C{len(DatabaseCharactersColumns.all_columns())}"
-        ),
+        range=self._characters_range_format.format(start="R1C1", end=f"R1C{len(DatabaseCharactersColumns.all_columns())}"),
         majorDimension=Dimension.rows,
         values=[DatabaseCharactersColumns.all_columns()],  # type: ignore
       )
@@ -223,18 +221,14 @@ class DatabaseCache(metaclass=SingletonType):
           raw_data=guilds_data, columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self
         )
       except KeyError:
-        self.guilds = CacheViewGuilds(
-          raw_data=[], columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self
-        )
+        self.guilds = CacheViewGuilds(raw_data=[], columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self)
       try:
         users_data: list[list[str | int | float]] = result["valueRanges"][1]["values"]
         self.users = CacheViewUsers(
           raw_data=users_data, columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self
         )
       except KeyError:
-        self.users = CacheViewUsers(
-          raw_data=[], columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self
-        )
+        self.users = CacheViewUsers(raw_data=[], columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self)
       try:
         characters_data: list[list[str | int | float]] = result["valueRanges"][2]["values"]
         self.characters = CacheViewCharacters(
@@ -368,6 +362,10 @@ class CacheViewBase[ModelT: CustomBaseModel]:
       )
     )
 
+  async def check_exist(self, index) -> bool:
+    async with self._core._read_write_lock.reader_lock:
+      return index in self._cache.index
+
 
 class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   _range_format_single = "Guilds!{cell}}"
@@ -387,6 +385,9 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
 
   async def append_row(self, values: GuildDBEntryModel) -> None:
     return await super().append_row(values)
+
+  async def check_exist(self, index: DatabaseGuildsIndex) -> bool:
+    return await super().check_exist(index)
 
 
 class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
@@ -418,6 +419,9 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
 
   async def append_row(self, values: UserDBEntryModel) -> None:
     return await super().append_row(values)
+
+  async def check_exist(self, index: DatabaseUsersIndex) -> bool:
+    return await super().check_exist(index)
 
 
 class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
@@ -460,3 +464,9 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
 
   async def append_row(self, values: CharacterDBEntryModel) -> None:
     return await super().append_row(values)
+
+  async def check_exist(self, index: CharacterUID) -> bool:
+    async with self._core._read_write_lock.reader_lock:
+      char_uids = self._cache.index.levels[0]  # type: ignore
+
+      return index in char_uids
