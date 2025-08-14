@@ -9,9 +9,10 @@ from cogs.character import CharacterTracking
 from cogs.dbcache_refresh_hooks import DatabaseCacheCog
 from cogs.staff import StaffCommands
 from database.cache import DatabaseCache
-from disnake import Intents
+from disnake import ApplicationCommandInteraction, Guild, Intents
 from disnake.ext.commands import Bot
 from environment_init_vars import OWNER_IDS, TEST_GUILDS
+from validation.models.database import GuildDBEntryModel
 
 logger = getLogger(__name__)
 
@@ -40,3 +41,14 @@ class SwallowBot(Bot):
     self.database = DatabaseCache()
     await self.database.refresh_cache()
     print(f"Logged on as {self.user}!")
+
+  async def on_guild_join(self, guild: Guild):
+    if not await self.database.guilds.check_exist(guild.id):
+      await self.database.guilds.append_row(
+        GuildDBEntryModel.model_validate(
+          {
+            "guild_id": guild.id,
+            "guild_name": guild.name,
+          }
+        )
+      )
