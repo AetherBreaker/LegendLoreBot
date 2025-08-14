@@ -23,6 +23,14 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
             }
+        },
+        {
+            "name": "Test Without Bot",
+            "type": "debugpy",
+            "request": "launch",
+            "justMyCode": true,
+            "program": "${workspaceFolder}/src/exec_nobot.py",
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
