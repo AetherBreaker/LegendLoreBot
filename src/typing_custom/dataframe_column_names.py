@@ -7,7 +7,7 @@ from enum import StrEnum
 from logging import getLogger
 from typing import Any, Self
 
-from typing_custom import CharacterUID, GuildID, UserID
+from typing_custom import CharacterName, CharacterUID, GuildID, UserID
 
 logger = getLogger(__name__)
 
@@ -69,6 +69,7 @@ class DatabaseGuildsColumns(ColNameEnum):
 
   guild_id = "guild_id"
   guild_name = "guild_name"
+  class_list = "class_list"
 
 
 type DatabaseGuildsIndex = GuildID
@@ -87,7 +88,7 @@ type DatabaseUsersIndex = tuple[UserID, GuildID]
 
 
 class DatabaseCharactersColumns(ColNameEnum):
-  __index_items__ = ["character_uid", "user_id", "guild_id"]
+  __index_items__ = ["character_uid", "user_id", "guild_id", "character_name"]
 
   character_uid = "character_uid"
   user_id = "user_id"
@@ -105,4 +106,6 @@ class DatabaseCharactersColumns(ColNameEnum):
   downtime_stockpiled = "downtime_stockpiled"
 
 
-type DatabaseCharactersIndex = tuple[CharacterUID, UserID, GuildID] | tuple[UserID, GuildID] | CharacterUID
+type DatabaseCharactersIndex = (
+  tuple[CharacterUID, UserID, GuildID, CharacterName] | tuple[UserID, GuildID, CharacterName] | CharacterUID
+)

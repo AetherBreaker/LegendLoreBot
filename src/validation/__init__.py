@@ -11,10 +11,13 @@ from pydantic import (
   ConfigDict,
   ModelWrapValidatorHandler,
   RootModel,
+  SerializationInfo,
+  SerializerFunctionWrapHandler,
   ValidationError,
   ValidationInfo,
   ValidatorFunctionWrapHandler,
   field_validator,
+  model_serializer,
   model_validator,
 )
 
@@ -28,8 +31,17 @@ class CustomRootModel(RootModel):
     validate_default=True,
     validate_assignment=True,
     coerce_numbers_to_str=True,
-  )  
+  )
+  _dumping_json: bool = False
 
+  @model_serializer(mode="wrap", when_used="json")
+  def serialize_as_jsonstr(self, nxt: SerializerFunctionWrapHandler, info: SerializationInfo):
+    if not self._dumping_json:
+      self._dumping_json = True
+      return self.model_dump_json()
+    else:
+      self._dumping_json = False
+      return nxt(self)
 
 
 class CustomBaseModel(BaseModel):

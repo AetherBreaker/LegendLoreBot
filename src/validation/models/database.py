@@ -5,14 +5,14 @@ if __name__ == "__main__":
 
 from functools import partial
 from logging import getLogger
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from uuid import uuid1
 
 from environment_init_vars import SETTINGS
 from number_types.character_money import CopperPieces, GoldPieces, PlatinumPieces, SilverPieces
 from number_types.downtime import DowntimeStockpile
 from number_types.server_money import GenericMoney
-from pydantic import UUID1, Field, HttpUrl, PlainSerializer, SerializationInfo, SerializerFunctionWrapHandler, model_serializer
+from pydantic import UUID1, Field, HttpUrl, PlainSerializer, ValidationInfo, field_validator
 from typing_custom import GuildID, UserID
 
 from validation import CustomBaseModel, CustomRootModel
@@ -45,16 +45,6 @@ level_milestone_rates = {
 
 class CharacterClassesModel(CustomRootModel):
   root: Annotated[dict[str, int], Field(default_factory=dict)]
-  _dumping_json: bool = False
-
-  @model_serializer(mode="wrap", when_used="json")
-  def serialize_as_jsonstr(self, nxt: SerializerFunctionWrapHandler, info: SerializationInfo):
-    if not self._dumping_json:
-      self._dumping_json = True
-      return self.model_dump_json()
-    else:
-      self._dumping_json = False
-      return nxt(self)
 
 
 class CharacterDBEntryModel(CustomBaseModel):
@@ -63,7 +53,7 @@ class CharacterDBEntryModel(CustomBaseModel):
   guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   character_name: str
   sheet_link: HttpUrl
-  classes: CharacterClassesModel
+  classes: Annotated[CharacterClassesModel, Field(default_factory=CharacterClassesModel)]
   milestones: int = 0
   level_rate: Literal["medium", "slow"] = "medium"
   mythic_trials: int = 0
@@ -84,10 +74,25 @@ class CharacterDBEntryModel(CustomBaseModel):
 
     return result
 
+  @field_validator("classes", mode="before")
+  @classmethod
+  def default_if_none(cls, val: Any, info: ValidationInfo) -> Any:
+    return cls.model_fields[info.field_name].get_default(call_default_factory=True) if val is None else val  # type: ignore
+
+
+class GuildClassList(CustomRootModel):
+  root: list[str] = Field(default_factory=list)
+
 
 class GuildDBEntryModel(CustomBaseModel):
   guild_id: GuildID
   guild_name: str
+  class_list: Annotated[GuildClassList, Field(default_factory=GuildClassList)]
+
+  @field_validator("class_list", mode="before")
+  @classmethod
+  def default_if_none(cls, val: Any, info: ValidationInfo) -> Any:
+    return cls.model_fields[info.field_name].get_default(call_default_factory=True) if val is None else val  # type: ignore
 
 
 class UserDBEntryModel(CustomBaseModel):

@@ -13,6 +13,7 @@ logger = getLogger(__name__)
 type UserID = int
 type GuildID = int
 type CharacterUID = UUID
+type CharacterName = str
 
 
 type SheetsValue = int | float | str

@@ -88,6 +88,8 @@ class DatabaseCache(metaclass=SingletonType):
 
     self._update_body: Optional[ValuesBatchUpdateBody] = None
 
+    self.update_db_header()
+
   @property
   def client(self) -> Client:
     now = self.loop.time()
@@ -107,6 +109,74 @@ class DatabaseCache(metaclass=SingletonType):
       if self._update_body is None:
         self._update_body = deepcopy(self._db_write_body_base)
       self._update_body["data"].append(value)
+
+  def update_db_header(self) -> None:
+    body = deepcopy(self._db_write_body_base)
+
+    body["data"].append(
+      ValueRange(
+        range=self._guilds_range_format.format(start="R1C1", end=f"R1C{len(DatabaseGuildsColumns.all_columns())}"),
+        majorDimension=Dimension.rows,
+        values=[DatabaseGuildsColumns.all_columns()],  # type: ignore
+      )
+    )
+    body["data"].append(
+      ValueRange(
+        range=self._users_range_format.format(start="R1C1", end=f"R1C{len(DatabaseUsersColumns.all_columns())}"),
+        majorDimension=Dimension.rows,
+        values=[DatabaseUsersColumns.all_columns()],  # type: ignore
+      )
+    )
+    body["data"].append(
+      ValueRange(
+        range=self._characters_range_format.format(
+          start="R1C1", end=f"R1C{len(DatabaseCharactersColumns.all_columns())}"
+        ),
+        majorDimension=Dimension.rows,
+        values=[DatabaseCharactersColumns.all_columns()],  # type: ignore
+      )
+    )
+
+    cols_body = {
+      "requests": [
+        {
+          "updateSheetProperties": {
+            "properties": {
+              "sheetId": self._tab_id_guilds,
+              "gridProperties": {"columnCount": len(DatabaseGuildsColumns.all_columns())},
+            },
+            "fields": "gridProperties/columnCount",
+          }
+        },
+        {
+          "updateSheetProperties": {
+            "properties": {
+              "sheetId": self._tab_id_users,
+              "gridProperties": {"columnCount": len(DatabaseUsersColumns.all_columns())},
+            },
+            "fields": "gridProperties/columnCount",
+          }
+        },
+        {
+          "updateSheetProperties": {
+            "properties": {
+              "sheetId": self._tab_id_characters,
+              "gridProperties": {"columnCount": len(DatabaseCharactersColumns.all_columns())},
+            },
+            "fields": "gridProperties/columnCount",
+          }
+        },
+      ]
+    }
+
+    self.client.http_client.batch_update(self._database_id, cols_body)
+
+    self.client.http_client.values_batch_update(id=self._database_id, body=body)
+
+    # sheet = self.client.open_by_key(self._database_id)
+    # worksheet = sheet.sheet1
+
+    # worksheet.add_cols()
 
   def check_database_format(self) -> bool:
     """Checks whether the database spreadsheet matches the expected formatting."""

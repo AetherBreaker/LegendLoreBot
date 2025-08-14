@@ -31,7 +31,8 @@ class CharacterTracking(Cog):
     inter: ApplicationCommandInteraction,
     character_name: str = Param(autocomplete=autocomp_charname),
   ):
-    test = Embed()
+    ...
+    # character = await self.bot.database.characters.read_typed_row()
 
 
 def setup(bot: "SwallowBot"):
