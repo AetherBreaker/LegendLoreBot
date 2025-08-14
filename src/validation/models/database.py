@@ -53,7 +53,7 @@ class CharacterDBEntryModel(CustomBaseModel):
   guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   character_name: str
   sheet_link: HttpUrl
-  classes: Annotated[CharacterClassesModel, Field(default_factory=CharacterClassesModel)]
+  classes: CharacterClassesModel = Field(default_factory=CharacterClassesModel)
   milestones: int = 0
   level_rate: Literal["medium", "slow"] = "medium"
   mythic_trials: int = 0
@@ -87,7 +87,7 @@ class GuildClassList(CustomRootModel):
 class GuildDBEntryModel(CustomBaseModel):
   guild_id: GuildID
   guild_name: str
-  class_list: Annotated[GuildClassList, Field(default_factory=GuildClassList)]
+  class_list: GuildClassList = Field(default_factory=GuildClassList)
 
   @field_validator("class_list", mode="before")
   @classmethod
