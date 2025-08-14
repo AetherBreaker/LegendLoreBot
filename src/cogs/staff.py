@@ -39,7 +39,6 @@ class StaffCommands(Cog):
     level_rate: Literal["medium", "slow"] = Param(choices=["medium", "slow"], default="medium"),
   ):
     try:
-      # TODO add checks if entry overlaps with an existing character in the DB
       new_entry = CharacterDBEntryModel(
         user_id=player.id,
         guild_id=inter.guild_id,
@@ -54,7 +53,9 @@ class StaffCommands(Cog):
       await inter.send(f"Failed to add character.\n {e}")
       return
 
-    # TODO Add a check for the user id in the user database, and add them as a new entry if missing
+    if await self.bot.database.characters.check_exist(new_entry.character_uid):
+      await inter.send(f"Character with UID {new_entry.character_uid} already exists.")
+      return
 
     await self.bot.database.characters.append_row(new_entry)
 
