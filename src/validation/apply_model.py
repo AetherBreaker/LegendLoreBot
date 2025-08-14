@@ -17,8 +17,11 @@ NULL_VALUES = ["NULL", "", " ", float("nan"), nan]
 
 
 def build_typed_dataframe(
-  data: list[list[str | int | float]], columns: type[ColNameEnum], types_model: type[CustomBaseModel]
+  data: list[list[str | int | float | None]], columns: type[ColNameEnum], types_model: type[CustomBaseModel]
 ) -> DataFrame:
+  # pad the data with columns of None to match the number of expected columns
+  data = [[row[idx] if idx < len(row) else None for idx in range(len(columns.all_columns()))] for row in data]
+
   # initialize dataframe
   df = DataFrame(data, columns=columns.all_columns(), dtype=object)
 
