@@ -11,7 +11,6 @@ from pydantic import (
   ConfigDict,
   ModelWrapValidatorHandler,
   RootModel,
-  SerializationInfo,
   SerializerFunctionWrapHandler,
   ValidationError,
   ValidationInfo,
@@ -20,6 +19,7 @@ from pydantic import (
   model_serializer,
   model_validator,
 )
+from pydantic_core import from_json
 
 logger = getLogger(__name__)
 
@@ -35,13 +35,20 @@ class CustomRootModel(RootModel):
   _dumping_json: bool = False
 
   @model_serializer(mode="wrap", when_used="json")
-  def serialize_as_jsonstr(self, nxt: SerializerFunctionWrapHandler, info: SerializationInfo):
+  def serialize_as_jsonstr(self, nxt: SerializerFunctionWrapHandler):
     if not self._dumping_json:
       self._dumping_json = True
       return self.model_dump_json()
     else:
       self._dumping_json = False
       return nxt(self)
+
+  @model_validator(mode="wrap")
+  @classmethod
+  def validate_as_jsonstr(cls, data: Any, handler: ValidatorFunctionWrapHandler) -> Self:
+    if isinstance(data, str):
+      data = from_json(data)
+    return handler(data)
 
 
 class CustomBaseModel(BaseModel):
@@ -61,8 +68,6 @@ class CustomBaseModel(BaseModel):
     try:
       results = handler(data)
     except ValidationError as e:
-      exc_type, exc_val, exc_tb = type(e), e, e.__traceback__
-
       raise e
 
     return data if results is None else results
@@ -74,8 +79,6 @@ class CustomBaseModel(BaseModel):
     try:
       results = handler(data)
     except ValidationError as e:
-      exc_type, exc_val, exc_tb = type(e), e, e.__traceback__
-
       raise e
 
     return data if results is None else results
