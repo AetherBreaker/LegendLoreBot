@@ -346,7 +346,11 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     await self._core.queue_db_api_update(update_data)
 
   async def append_row(self, values: ModelT) -> None:
-    index = tuple(getattr(values, col) for col in self._cache_index)
+    index = (
+      tuple(getattr(values, col) for col in self._cache_index)
+      if len(self._cache_index) > 1
+      else getattr(values, self._cache_index[0])
+    )
 
     row = Series(values.model_dump(), dtype=object)
     sheets_row = Series(values.model_dump(mode="json"), dtype=object)
