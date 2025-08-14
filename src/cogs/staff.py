@@ -6,6 +6,7 @@ if __name__ == "__main__":
 from logging import getLogger
 from typing import TYPE_CHECKING, Literal
 
+from database.db_utils import ensure_user_exists
 from disnake import GuildCommandInteraction, User
 from disnake.ext.commands import Cog, Param, slash_command
 from pydantic import ValidationError
@@ -38,6 +39,9 @@ class StaffCommands(Cog):
     sheetlink: str,
     level_rate: Literal["medium", "slow"] = Param(choices=["medium", "slow"], default="medium"),
   ):
+    # first we must check if the user exists in the database before we can add their character
+    await ensure_user_exists(player, inter.guild)
+
     try:
       new_entry = CharacterDBEntryModel(
         user_id=player.id,
@@ -51,11 +55,11 @@ class StaffCommands(Cog):
       # TODO make errors explain why it failed
       logger.error(f"Failed to add character: {e}")
       await inter.send(f"Failed to add character.\n {e}")
-      return
+      raise e
 
     if await self.bot.database.characters.check_exist(new_entry.character_uid):
       await inter.send(f"Character with UID {new_entry.character_uid} already exists.")
-      return
+      raise ValueError("Character already exists")
 
     await self.bot.database.characters.append_row(new_entry)
 
