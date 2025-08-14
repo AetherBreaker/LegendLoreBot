@@ -4,6 +4,7 @@ if __name__ == "__main__":
   configure_logging()
 
 from logging import getLogger
+from traceback import format_exception
 
 from cogs.character import CharacterTracking
 from cogs.dbcache_refresh_hooks import DatabaseCacheCog
@@ -52,3 +53,15 @@ class SwallowBot(Bot):
           }
         )
       )
+
+  async def on_slash_command_error(self, interaction: ApplicationCommandInteraction, exception: Exception):
+    exc_type, exc_val, exc_tb = type(exception), exception, exception.__traceback__
+    logger.error(f"Error occurred in slash command {interaction.application_command}", exc_info=(exc_type, exc_val, exc_tb))
+    await interaction.send(
+      f"""An error occurred while processing your command.
+      Please contact AetherBreaker and share the following traceback
+      Traceback:
+      ```py
+      {"".join(format_exception(exc_type, exc_val, exc_tb))}
+      ```"""
+    )
