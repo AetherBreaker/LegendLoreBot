@@ -107,5 +107,8 @@ class DatabaseCharactersColumns(ColNameEnum):
 
 
 type DatabaseCharactersIndex = (
-  tuple[CharacterUID, UserID, GuildID, CharacterName] | tuple[UserID, GuildID, CharacterName] | CharacterUID
+  tuple[CharacterUID, UserID, GuildID, CharacterName]
+  | tuple[UserID, GuildID, CharacterName]
+  | tuple[UserID, CharacterName]
+  | CharacterUID
 )

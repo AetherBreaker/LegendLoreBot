@@ -438,10 +438,21 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
   async def process_index(self, index: DatabaseCharactersIndex) -> int:
     dex: MultiIndex = self._cache.index  # type: ignore
 
-    if isinstance(index, Sequence) and len(index) == 2:
-      index_seq = [slice(None), *index]
-    elif not isinstance(index, Sequence) or len(index) == 1:
+    if not isinstance(index, tuple):
+      # If the index isn't a tuple, by process of elimination, it must be a CharacterUID
       index_seq = [index] + ([slice(None)] * (dex.nlevels - 1))
+    elif len(index) == 3:
+      index_seq = [slice(None), *index]
+
+    elif len(index) == 1:
+      # If the index has a length of 1, by process of elimination, it must be a CharacterUID
+      index_seq = [index[0]] + ([slice(None)] * (dex.nlevels - 1))
+
+    elif len(index) == 2:
+      # if the tuples length is 2, we must have only a userid and character name
+      # So index 1 goes to position 2 and index 2 goes to position 4
+      index_seq = [slice(None), index[0], slice(None), index[1]]
+
     else:
       index_seq = index
 
