@@ -44,7 +44,11 @@ level_milestone_rates = {
 
 
 class CharacterClassesModel(CustomRootModel):
-  root: Annotated[dict[str, int], Field(default_factory=dict)]
+  root: dict[str, int] = Field(default_factory=dict)
+
+
+class CharacterImgURLs(CustomRootModel):
+  root: list[HttpUrl] = Field(default_factory=list)
 
 
 class CharacterDBEntryModel(CustomBaseModel):
@@ -62,6 +66,7 @@ class CharacterDBEntryModel(CustomBaseModel):
   money_sp: SilverPieces = SilverPieces(0)
   money_cp: CopperPieces = CopperPieces(0)
   downtime_stockpiled: DowntimeStockpile = DowntimeStockpile(0)
+  images: CharacterImgURLs = Field(default_factory=CharacterImgURLs)
 
   @property
   def level(self):
