@@ -30,7 +30,7 @@ from typing_custom.dataframe_column_names import (
 )
 from validation import CustomBaseModel
 from validation.apply_model import build_typed_dataframe
-from validation.models.database import CharacterDBEntryModel, GuildDBEntryModel, UserDBEntryModel
+from validation.models.db_entries import CharacterDBEntryModel, GuildDBEntryModel, UserDBEntryModel
 
 logger = getLogger(__name__)
 

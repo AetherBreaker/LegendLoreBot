@@ -1,5 +1,5 @@
 from disnake import Guild, User
-from validation.models.database import GuildDBEntryModel, UserDBEntryModel
+from validation.models.db_entries import GuildDBEntryModel, UserDBEntryModel
 
 from database.cache import DatabaseCache
 

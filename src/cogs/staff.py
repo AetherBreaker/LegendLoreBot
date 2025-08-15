@@ -10,7 +10,7 @@ from database.db_utils import ensure_user_exists
 from disnake import GuildCommandInteraction, User
 from disnake.ext.commands import Cog, Param, slash_command
 from pydantic import ValidationError
-from validation.models.database import CharacterDBEntryModel
+from validation.models.db_entries import CharacterDBEntryModel
 
 logger = getLogger(__name__)
 

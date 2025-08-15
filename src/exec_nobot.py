@@ -9,7 +9,7 @@ from logging import getLogger
 from bot_base import SwallowBot
 from database.cache import DatabaseCache
 from environment_init_vars import SETTINGS
-from validation.models.database import GuildDBEntryModel
+from validation.models.db_entries import GuildDBEntryModel
 
 logger = getLogger(__name__)
 
