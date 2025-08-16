@@ -153,6 +153,54 @@ class CharacterTracking(Cog):
       await inter.send("Invalid URL format.")
       return
 
+  # Character classes
+
+  @characters.sub_command()
+  async def add_class(
+    self,
+    inter: ApplicationCommandInteraction,
+    character_name: str,
+    class_name: str,
+    class_level: int = Param(gt=0, lt=21),
+  ):
+    character = (
+      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+      if inter.guild_id is None
+      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+    )
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    character.classes.root[class_name] = class_level
+    await self.bot.database.characters.update_row(character.character_uid, character)
+    await inter.send(f"Added class {class_name} (Level {class_level}) to character {character_name}.")
+
+  @characters.sub_command()
+  async def remove_class(
+    self,
+    inter: ApplicationCommandInteraction,
+    character_name: str,
+    class_name: str,
+  ):
+    character = (
+      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+      if inter.guild_id is None
+      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+    )
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    if class_name in character.classes.root:
+      del character.classes.root[class_name]
+      await self.bot.database.characters.update_row(character.character_uid, character)
+      await inter.send(f"Removed class {class_name} from character {character_name}.")
+    else:
+      await inter.send(f"Class {class_name} not found for character {character_name}.")
+
   # Add the autocomplete function without having to make character_name the last param
   add_art.autocomplete("character_name")(autocomp_charname)
   remove_art.autocomplete("character_name")(autocomp_charname)
