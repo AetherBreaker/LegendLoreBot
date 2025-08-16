@@ -4,8 +4,10 @@ if __name__ == "__main__":
   configure_logging()
 
 from functools import partial
+from itertools import accumulate, takewhile
 from logging import getLogger
-from typing import Annotated, Any, Literal
+from math import floor
+from typing import Annotated, Any, Literal, Optional
 from uuid import uuid1
 
 from environment_init_vars import SETTINGS
@@ -41,6 +43,8 @@ level_milestone_rates = {
   (76, 152): 19,
   (88, 176): 20,
 }
+
+tier_rate = [floor((i + 1) / 2) for i in range(2, 11)]
 
 
 class CharacterClassesModel(CustomRootModel):
@@ -79,6 +83,10 @@ class CharacterDBEntryModel(CustomBaseModel):
         result = level
 
     return result
+
+  @property
+  def tier(self) -> int:
+    return max(len(list(takewhile(lambda x: x <= self.mythic_trials, accumulate(tier_rate, initial=0)))), self.level // 3)
 
   @field_validator("classes", mode="before")
   @classmethod
