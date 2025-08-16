@@ -99,7 +99,7 @@ class GuildClassList(CustomRootModel):
 
 
 class GuildDBEntryModel(CustomBaseModel):
-  guild_id: GuildID
+  guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   guild_name: str
   class_list: GuildClassList = Field(default_factory=GuildClassList)
 
@@ -110,7 +110,7 @@ class GuildDBEntryModel(CustomBaseModel):
 
 
 class UserDBEntryModel(CustomBaseModel):
-  user_id: UserID
-  guild_id: GuildID
+  user_id: Annotated[UserID, PlainSerializer(str, when_used="json")]
+  guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   user_name: str
   server_money: GenericMoney = GenericMoney(0)
