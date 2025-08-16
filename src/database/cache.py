@@ -17,7 +17,7 @@ from gspread import Client, authorize
 from gspread.http_client import BackOffHTTPClient
 from gspread.utils import DateTimeOption, Dimension, ValueInputOption, ValueRenderOption
 from pandas import DataFrame, MultiIndex, Series
-from typing_custom import CharacterUID, ValueRange, ValuesBatchUpdateBody
+from typing_custom import CharacterName, CharacterUID, GuildID, UserID, ValueRange, ValuesBatchUpdateBody
 from typing_custom.abc import SingletonType
 from typing_custom.dataframe_column_names import (
   ColNameEnum,
@@ -244,16 +244,12 @@ class DatabaseCache(metaclass=SingletonType):
 
       try:
         guilds_data: list[list[str | int | float]] = result["valueRanges"][0]["values"]
-        self.guilds = CacheViewGuilds(
-          raw_data=guilds_data, columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self
-        )
+        self.guilds = CacheViewGuilds(raw_data=guilds_data, columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self)
       except KeyError:
         self.guilds = CacheViewGuilds(raw_data=[], columns=DatabaseGuildsColumns, types_model=GuildDBEntryModel, cache_core=self)
       try:
         users_data: list[list[str | int | float]] = result["valueRanges"][1]["values"]
-        self.users = CacheViewUsers(
-          raw_data=users_data, columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self
-        )
+        self.users = CacheViewUsers(raw_data=users_data, columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self)
       except KeyError:
         self.users = CacheViewUsers(raw_data=[], columns=DatabaseUsersColumns, types_model=UserDBEntryModel, cache_core=self)
       try:
@@ -265,9 +261,7 @@ class DatabaseCache(metaclass=SingletonType):
           cache_core=self,
         )
       except KeyError:
-        self.characters = CacheViewCharacters(
-          raw_data=[], columns=DatabaseCharactersColumns, types_model=CharacterDBEntryModel, cache_core=self
-        )
+        self.characters = CacheViewCharacters(raw_data=[], columns=DatabaseCharactersColumns, types_model=CharacterDBEntryModel, cache_core=self)
 
   async def submit_queued_writes_to_pool(self) -> None:
     if not self.queued_updates:
@@ -309,16 +303,23 @@ class CacheViewBase[ModelT: CustomBaseModel]:
   async def __aexit__(self, exc_type, exc_value, traceback) -> None:
     self._core._read_write_lock.reader_lock.release()
 
-  async def read_typed_row(self, index) -> ModelT:
+  async def read_typed_row(self, index, re_validate: bool = False) -> ModelT:
     async with self._core._read_write_lock.reader_lock:
-      row = self._cache[*index if isinstance(index, tuple) else index]
+      row = self._cache.iloc[await self.get_rownum(index)]
+
+    if re_validate:
+      return self._model(**row)
+    else:
       return self._model.model_construct(**row)
 
-  async def process_index(self, index) -> int:
+  async def process_index(self, index):
+    return index
+
+  async def get_rownum(self, index) -> int:
     # default process index. Assume single index
     async with self._core._read_write_lock.reader_lock:
       # locate the row number of index
-      row_number = self._cache.index.get_loc(index)
+      row_number = self._cache.index.get_loc(await self.process_index(index))
 
     if isinstance(row_number, slice):
       row_number = int(row_number.stop - row_number.start)
@@ -328,7 +329,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     return row_number
 
   async def write_value(self, index, column, value: Any) -> None:
-    row_number = await self.process_index(index)
+    row_number = await self.get_rownum(index)
 
     async with self._core._read_write_lock.writer_lock:
       self._cache.at[index, column] = value
@@ -346,7 +347,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     )
 
   async def update_row(self, index, values: Sequence[Any] | ModelT) -> None:
-    row_number = await self.process_index(index)
+    row_number = await self.get_rownum(index)
 
     if isinstance(values, self._model):
       row = Series(values.model_dump(), dtype=object)
@@ -358,7 +359,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
       raise TypeError(f"{type(values)} does not match the expected type of Sequence[Any] or {self._model}")
 
     async with self._core._read_write_lock.writer_lock:
-      self._cache.loc[index, :] = row
+      self._cache.iloc[await self.get_rownum(index), :] = row
 
     row_number += 2  # add one to account for gsheets header
 
@@ -373,14 +374,10 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     await self._core.queue_db_api_update(update_data)
 
   async def append_row(self, values: ModelT) -> None:
-    index = (
-      tuple(getattr(values, col) for col in self._cache_index)
-      if len(self._cache_index) > 1
-      else getattr(values, self._cache_index[0])
-    )
+    index = tuple(getattr(values, col) for col in self._cache_index) if len(self._cache_index) > 1 else getattr(values, self._cache_index[0])
 
     row = Series(values.model_dump(), dtype=object)
-    sheets_row = Series(values.model_dump(mode="json"), dtype=object)
+    sheets_row = Series(values.model_dump(mode="json"), dtype=object).tolist()
 
     async with self._core._read_write_lock.writer_lock:
       self._cache.loc[index, :] = row
@@ -389,11 +386,11 @@ class CacheViewBase[ModelT: CustomBaseModel]:
       ValueRange(
         range=self._range_format.format(start=f"R{len(self._cache) + 1}C1", end=f"C{len(self._columns)}"),
         majorDimension=Dimension.rows,
-        values=[sheets_row.tolist()],
+        values=[sheets_row],
       )
     )
 
-  async def check_exist(self, index) -> bool:
+  async def check_exists(self, index) -> bool:
     async with self._core._read_write_lock.reader_lock:
       return index in self._cache.index
 
@@ -402,11 +399,14 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   _range_format_single = "Guilds!{cell}}"
   _range_format = "Guilds!{start}:{end}"
 
-  async def read_typed_row(self, index: DatabaseGuildsIndex) -> GuildDBEntryModel:
-    return await super().read_typed_row(index)
+  async def read_typed_row(self, index: DatabaseGuildsIndex, re_validate: bool = False) -> GuildDBEntryModel:
+    return await super().read_typed_row(index, re_validate)
 
-  async def process_index(self, index: DatabaseGuildsIndex) -> int:
+  async def process_index(self, index: DatabaseGuildsIndex) -> DatabaseGuildsIndex:
     return await super().process_index(index)
+
+  async def get_rownum(self, index: DatabaseGuildsIndex) -> int:
+    return await super().get_rownum(index)
 
   async def write_value(self, index: DatabaseGuildsIndex, column: DatabaseGuildsColumns, value: Any) -> None:
     return await super().write_value(index, column, value)
@@ -417,18 +417,21 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   async def append_row(self, values: GuildDBEntryModel) -> None:
     return await super().append_row(values)
 
-  async def check_exist(self, index: DatabaseGuildsIndex) -> bool:
-    return await super().check_exist(index)
+  async def check_exists(self, index: DatabaseGuildsIndex) -> bool:
+    return await super().check_exists(index)
 
 
 class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
   _range_format_single = "Users!{cell}}"
   _range_format = "Users!{start}:{end}"
 
-  async def read_typed_row(self, index: DatabaseUsersIndex) -> UserDBEntryModel:
-    return await super().read_typed_row(index)
+  async def read_typed_row(self, index: DatabaseUsersIndex, re_validate: bool = False) -> UserDBEntryModel:
+    return await super().read_typed_row(index, re_validate)
 
-  async def process_index(self, index: DatabaseUsersIndex) -> int:
+  async def process_index(self, index: DatabaseUsersIndex) -> DatabaseUsersIndex:
+    return await super().process_index(index)
+
+  async def get_rownum(self, index: DatabaseUsersIndex) -> int:
     dex: MultiIndex = self._cache.index  # type: ignore
 
     async with self._core._read_write_lock.reader_lock:
@@ -451,18 +454,43 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
   async def append_row(self, values: UserDBEntryModel) -> None:
     return await super().append_row(values)
 
-  async def check_exist(self, index: DatabaseUsersIndex) -> bool:
-    return await super().check_exist(index)
+  async def check_exists(self, index: DatabaseUsersIndex) -> bool:
+    return await super().check_exists(index)
 
 
 class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
   _range_format_single = "Characters!{cell}"
   _range_format = "Characters!{start}:{end}"
 
-  async def read_typed_row(self, index: DatabaseCharactersIndex) -> CharacterDBEntryModel:
-    return await super().read_typed_row(index)
+  async def read_typed_row(self, index: DatabaseCharactersIndex, re_validate: bool = False) -> CharacterDBEntryModel:
+    return await super().read_typed_row(index, re_validate)
 
-  async def process_index(self, index: DatabaseCharactersIndex) -> int:
+  async def process_index(
+    self, index: DatabaseCharactersIndex
+  ) -> tuple[slice, UserID, slice | GuildID, slice | CharacterName] | tuple[CharacterUID, slice, slice, slice]:
+    if not isinstance(index, tuple):
+      # If the index isn't a tuple, by process of elimination, it must be a CharacterUID
+      index_seq = (index, slice(None), slice(None), slice(None))
+    elif len(index) == 3:
+      index_seq = (slice(None), *index)
+
+    elif len(index) == 1:
+      # If the index has a length of 1, by process of elimination, it must be a CharacterUID
+      index_seq = (index[0], slice(None), slice(None), slice(None))
+
+    elif len(index) == 2:
+      if isinstance(index[1], str):
+        # if the tuples length is 2, we must have only a userid and character name
+        # So index 1 goes to position 2 and index 2 goes to position 4
+        index_seq = (slice(None), index[0], slice(None), index[1])
+      else:
+        index_seq = (slice(None), index[0], index[1], slice(None))
+
+    else:
+      raise ValueError("Invalid index format")
+    return index_seq
+
+  async def get_rownum(self, index: DatabaseCharactersIndex) -> int:
     dex: MultiIndex = self._cache.index  # type: ignore
 
     if not isinstance(index, tuple):
@@ -507,7 +535,7 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
   async def append_row(self, values: CharacterDBEntryModel) -> None:
     return await super().append_row(values)
 
-  async def check_exist(self, index: CharacterUID) -> bool:
+  async def check_exists(self, index: CharacterUID) -> bool:
     async with self._core._read_write_lock.reader_lock:
       char_uids = self._cache.index.levels[0]  # type: ignore
 
