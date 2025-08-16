@@ -5,12 +5,13 @@ if __name__ == "__main__":
 
 from logging import getLogger
 
-from autocomplete.autocomp_cache import AutocompCache, prepass_cache
 from component_menus.choice_discriminator import DiscriminateChoices
 from database.cache import DatabaseCache, DatabaseCharactersColumns
 from disnake import ApplicationCommandInteraction
 from rapidfuzz.process import extract
 from typing_custom import CharacterUID
+
+from autocomplete.autocomp_cache import AutocompCache, prepass_cache
 
 logger = getLogger(__name__)
 
@@ -21,16 +22,14 @@ type AutocompValue = CharacterUID | DiscriminateChoices
 
 
 @prepass_cache
-async def autocomp_charname(
-  cache: AutocompCache[dict[CharacterUID, str]], inter: ApplicationCommandInteraction, user_input: str
-) -> list[str]:
+async def autocomp_charname(cache: AutocompCache[dict[CharacterUID, str]], inter: ApplicationCommandInteraction, user_input: str) -> list[str]:
   # Grab the singleton instance of our database accessor
   db = DatabaseCache()
 
   search_index = (
-    (slice(None), inter.user.id, inter.guild_id)
+    (slice(None), inter.user.id, inter.guild_id, slice(None))
     if inter.guild_id is not None
-    else (slice(None), inter.user.id, slice(None))
+    else (slice(None), inter.user.id, slice(None), slice(None))
   )
 
   cached_query = cache.get(search_index)
