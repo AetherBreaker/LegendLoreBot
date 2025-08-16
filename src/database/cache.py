@@ -164,6 +164,33 @@ class DatabaseCache(metaclass=SingletonType):
             "fields": "gridProperties/columnCount",
           }
         },
+        {
+          "setBasicFilter": {
+            "filter": {
+              "range": {
+                "sheetId": self._tab_id_guilds,
+              }
+            }
+          }
+        },
+        {
+          "setBasicFilter": {
+            "filter": {
+              "range": {
+                "sheetId": self._tab_id_users,
+              }
+            }
+          }
+        },
+        {
+          "setBasicFilter": {
+            "filter": {
+              "range": {
+                "sheetId": self._tab_id_characters,
+              }
+            }
+          }
+        },
       ]
     }
 
