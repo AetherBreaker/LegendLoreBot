@@ -67,6 +67,7 @@ class CharacterDBEntryModel(CustomBaseModel):
   money_cp: CopperPieces = CopperPieces(0)
   downtime_stockpiled: DowntimeStockpile = DowntimeStockpile(0)
   images: CharacterImgURLs = Field(default_factory=CharacterImgURLs)
+  token_url: Optional[HttpUrl] = None
 
   @property
   def level(self):

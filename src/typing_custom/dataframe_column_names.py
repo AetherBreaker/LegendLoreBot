@@ -104,6 +104,8 @@ class DatabaseCharactersColumns(ColNameEnum):
   money_sp = "money_sp"
   money_cp = "money_cp"
   downtime_stockpiled = "downtime_stockpiled"
+  images = "images"
+  token_url = "token_url"
 
 
 type DatabaseCharactersIndex = (
