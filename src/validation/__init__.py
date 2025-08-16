@@ -11,6 +11,7 @@ from pydantic import (
   ConfigDict,
   ModelWrapValidatorHandler,
   RootModel,
+  SerializationInfo,
   SerializerFunctionWrapHandler,
   ValidationError,
   ValidationInfo,
@@ -34,14 +35,14 @@ class CustomRootModel(RootModel):
   )
   _dumping_json: bool = False
 
-  @model_serializer(mode="wrap", when_used="json")
-  def serialize_as_jsonstr(self, nxt: SerializerFunctionWrapHandler):
-    if not self._dumping_json:
-      self._dumping_json = True
-      return self.model_dump_json()
-    else:
-      self._dumping_json = False
-      return nxt(self)
+  # @model_serializer(mode="wrap", when_used="json")
+  # def serialize_as_jsonstr(self, nxt: SerializerFunctionWrapHandler):
+  #   if not self._dumping_json:
+  #     self._dumping_json = True
+  #     return self.model_dump_json()
+  #   else:
+  #     self._dumping_json = False
+  #     return nxt(self)
 
   @model_validator(mode="wrap")
   @classmethod
@@ -49,6 +50,17 @@ class CustomRootModel(RootModel):
     if isinstance(data, str):
       data = from_json(data)
     return handler(data)
+
+  @model_serializer(mode="wrap", when_used="unless-none")
+  def return_self(self, nxt: SerializerFunctionWrapHandler, info: SerializationInfo):
+    if not info.mode_is_json():
+      return self
+    if not self._dumping_json:
+      self._dumping_json = True
+      return self.model_dump_json()
+    else:
+      self._dumping_json = False
+      return nxt(self)
 
 
 class CustomBaseModel(BaseModel):
