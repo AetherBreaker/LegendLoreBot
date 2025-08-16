@@ -16,9 +16,7 @@ logger = getLogger(__name__)
 NULL_VALUES = ["NULL", "", " ", float("nan")]
 
 
-def build_typed_dataframe(
-  data: list[list[str | int | float | None]], columns: type[ColNameEnum], types_model: type[CustomBaseModel]
-) -> DataFrame:
+def build_typed_dataframe(data: list[list[str | int | float | None]], columns: type[ColNameEnum], types_model: type[CustomBaseModel]) -> DataFrame:
   # pad the data with columns of None to match the number of expected columns
   data = [[row[idx] if idx < len(row) else nan for idx in range(len(columns.all_columns()))] for row in data]
 
@@ -27,7 +25,7 @@ def build_typed_dataframe(
 
   if not df.empty:
     # Ensure all None-like objects within the dataframe are replaced with None prior to validation
-    df = df.replace(NULL_VALUES, value=nan)
+    df = df.infer_objects(copy=False).replace(NULL_VALUES, value=nan)  # type: ignore
 
     newly_typed_rows = []
 
