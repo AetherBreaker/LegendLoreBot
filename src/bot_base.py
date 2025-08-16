@@ -12,13 +12,13 @@ from cogs.staff import StaffCommands
 from database.cache import DatabaseCache
 from database.db_utils import ensure_guild_exists
 from disnake import ApplicationCommandInteraction, Guild, Intents
-from disnake.ext.commands import Bot
+from disnake.ext.commands import InteractionBot
 from environment_init_vars import OWNER_IDS, TEST_GUILDS
 
 logger = getLogger(__name__)
 
 
-class SwallowBot(Bot):
+class SwallowBot(InteractionBot):
   database: DatabaseCache
 
   def __init__(self, *args, **kwargs):
