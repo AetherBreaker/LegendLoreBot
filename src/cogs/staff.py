@@ -57,7 +57,7 @@ class StaffCommands(Cog):
       await inter.send(f"Failed to add character.\n {e}")
       raise e
 
-    if await self.bot.database.characters.check_exist(new_entry.character_uid):
+    if await self.bot.database.characters.check_exists(new_entry.character_uid):
       await inter.send(f"Character with UID {new_entry.character_uid} already exists.")
       raise ValueError("Character already exists")
 
