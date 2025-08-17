@@ -7,7 +7,7 @@ from asyncio import get_running_loop, sleep
 from collections.abc import Sequence
 from copy import deepcopy
 from logging import getLogger
-from typing import Any, Optional
+from typing import Any, Literal, Optional, overload
 
 from aiologic import Lock
 from aiorwlock import RWLock
@@ -17,6 +17,7 @@ from gspread import Client, authorize
 from gspread.http_client import BackOffHTTPClient
 from gspread.utils import DateTimeOption, Dimension, ValueInputOption, ValueRenderOption
 from pandas import DataFrame, MultiIndex, Series
+from pydantic import TypeAdapter
 from typing_custom import CharacterName, CharacterUID, GuildID, UserID, ValueRange, ValuesBatchUpdateBody
 from typing_custom.abc import SingletonType
 from typing_custom.dataframe_column_names import (
@@ -30,7 +31,14 @@ from typing_custom.dataframe_column_names import (
 )
 from validation import CustomBaseModel
 from validation.apply_model import build_typed_dataframe
-from validation.models.db_entries import CharacterDBEntryModel, GuildDBEntryModel, UserDBEntryModel
+from validation.models.db_entries import (
+  CHARACTERS_TYPE_ADAPTERS,
+  GUILDS_TYPE_ADAPTERS,
+  USERS_TYPE_ADAPTERS,
+  CharacterDBEntryModel,
+  GuildDBEntryModel,
+  UserDBEntryModel,
+)
 
 logger = getLogger(__name__)
 
@@ -282,6 +290,7 @@ class DatabaseCache(metaclass=SingletonType):
 class CacheViewBase[ModelT: CustomBaseModel]:
   _range_format: str
   _range_format_single: str
+  _field_type_adapters: dict[str, TypeAdapter]
 
   def __init__(
     self,
@@ -312,6 +321,16 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     else:
       return self._model.model_construct(**row)
 
+  async def read_value(self, index, col, validate: bool = False) -> tuple[TypeAdapter[Any], Any] | Any:
+    async with self._core._read_write_lock.reader_lock:
+      value = self._cache.iat[await self.get_rownum(index), self._cache.columns.get_loc(col)]
+      if validate:
+        ta = self._field_type_adapters.get(col)
+        if ta is None:
+          raise RuntimeError("how the fuck")
+        return (ta, value)
+      return value
+
   async def process_index(self, index):
     return index
 
@@ -328,8 +347,11 @@ class CacheViewBase[ModelT: CustomBaseModel]:
 
     return row_number
 
-  async def write_value(self, index, column, value: Any) -> None:
+  async def write_value(self, index, column, value: Any, ta: TypeAdapter) -> None:
     row_number = await self.get_rownum(index)
+
+    value = ta.dump_python(value)
+    sheets_value = ta.dump_python(value, mode="json")
 
     async with self._core._read_write_lock.writer_lock:
       self._cache.at[index, column] = value
@@ -342,7 +364,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
       ValueRange(
         range=self._range_format_single.format(cell=f"R{row_number}C{self._columns.get_enum_index(column) + 1}"),
         majorDimension=Dimension.rows,
-        values=[[value]],
+        values=[[sheets_value]],
       )
     )
 
@@ -398,9 +420,19 @@ class CacheViewBase[ModelT: CustomBaseModel]:
 class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   _range_format_single = "Guilds!{cell}}"
   _range_format = "Guilds!{start}:{end}"
+  _field_type_adapters = GUILDS_TYPE_ADAPTERS
 
   async def read_typed_row(self, index: DatabaseGuildsIndex, re_validate: bool = False) -> GuildDBEntryModel:
     return await super().read_typed_row(index, re_validate)
+
+  @overload
+  async def read_value(self, index: DatabaseGuildsIndex, col: DatabaseGuildsColumns, validate: Literal[False] = False) -> Any: ...
+
+  @overload
+  async def read_value(self, index: DatabaseGuildsIndex, col: DatabaseGuildsColumns, validate: Literal[True]) -> tuple[TypeAdapter[Any], Any]: ...
+
+  async def read_value(self, index: DatabaseGuildsIndex, col: DatabaseGuildsColumns, validate: bool = False) -> tuple[TypeAdapter[Any] | Any] | Any:
+    return await super().read_value(index, col, validate)
 
   async def process_index(self, index: DatabaseGuildsIndex) -> DatabaseGuildsIndex:
     return await super().process_index(index)
@@ -408,8 +440,8 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   async def get_rownum(self, index: DatabaseGuildsIndex) -> int:
     return await super().get_rownum(index)
 
-  async def write_value(self, index: DatabaseGuildsIndex, column: DatabaseGuildsColumns, value: Any) -> None:
-    return await super().write_value(index, column, value)
+  async def write_value(self, index: DatabaseGuildsIndex, column: DatabaseGuildsColumns, value: Any, ta: TypeAdapter) -> None:
+    return await super().write_value(index, column, value, ta)
 
   async def update_row(self, index: DatabaseGuildsIndex, values: Sequence[Any] | GuildDBEntryModel) -> None:
     return await super().update_row(index, values)
@@ -424,9 +456,19 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
 class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
   _range_format_single = "Users!{cell}}"
   _range_format = "Users!{start}:{end}"
+  _field_type_adapters = USERS_TYPE_ADAPTERS
 
   async def read_typed_row(self, index: DatabaseUsersIndex, re_validate: bool = False) -> UserDBEntryModel:
     return await super().read_typed_row(index, re_validate)
+
+  @overload
+  async def read_value(self, index: DatabaseUsersIndex, col: DatabaseUsersColumns, validate: Literal[False] = False) -> Any: ...
+
+  @overload
+  async def read_value(self, index: DatabaseUsersIndex, col: DatabaseUsersColumns, validate: Literal[True]) -> tuple[TypeAdapter[Any], Any]: ...
+
+  async def read_value(self, index: DatabaseUsersIndex, col: DatabaseUsersColumns, validate: bool = False) -> tuple[TypeAdapter[Any] | Any] | Any:
+    return await super().read_value(index, col, validate)
 
   async def process_index(self, index: DatabaseUsersIndex) -> DatabaseUsersIndex:
     return await super().process_index(index)
@@ -445,8 +487,8 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
 
     return row_number
 
-  async def write_value(self, index: DatabaseUsersIndex, column: DatabaseUsersColumns, value: Any) -> None:
-    return await super().write_value(index, column, value)
+  async def write_value(self, index: DatabaseUsersIndex, column: DatabaseUsersColumns, value: Any, ta: TypeAdapter) -> None:
+    return await super().write_value(index, column, value, ta)
 
   async def update_row(self, index: DatabaseUsersIndex, values: Sequence[Any] | UserDBEntryModel) -> None:
     return await super().update_row(index, values)
@@ -461,9 +503,23 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
 class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
   _range_format_single = "Characters!{cell}"
   _range_format = "Characters!{start}:{end}"
+  _field_type_adapters = CHARACTERS_TYPE_ADAPTERS
 
   async def read_typed_row(self, index: DatabaseCharactersIndex, re_validate: bool = False) -> CharacterDBEntryModel:
     return await super().read_typed_row(index, re_validate)
+
+  @overload
+  async def read_value(self, index: DatabaseCharactersIndex, col: DatabaseCharactersColumns, validate: Literal[False] = False) -> Any: ...
+
+  @overload
+  async def read_value(
+    self, index: DatabaseCharactersIndex, col: DatabaseCharactersColumns, validate: Literal[True]
+  ) -> tuple[TypeAdapter[Any], Any]: ...
+
+  async def read_value(
+    self, index: DatabaseCharactersIndex, col: DatabaseCharactersColumns, validate: bool = False
+  ) -> tuple[TypeAdapter[Any] | Any] | Any:
+    return await super().read_value(index, col, validate)
 
   async def process_index(
     self, index: DatabaseCharactersIndex
@@ -526,8 +582,8 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
 
     return row_number
 
-  async def write_value(self, index: DatabaseCharactersIndex, column: DatabaseCharactersColumns, value: Any) -> None:
-    return await super().write_value(index, column, value)
+  async def write_value(self, index: DatabaseCharactersIndex, column: DatabaseCharactersColumns, value: Any, ta: TypeAdapter) -> None:
+    return await super().write_value(index, column, value, ta)
 
   async def update_row(self, index: DatabaseCharactersIndex, values: Sequence[Any] | CharacterDBEntryModel) -> None:
     return await super().update_row(index, values)

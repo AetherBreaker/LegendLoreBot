@@ -4,6 +4,7 @@ if __name__ == "__main__":
   configure_logging()
 
 from functools import partial
+from inspect import get_annotations
 from itertools import accumulate, takewhile
 from logging import getLogger
 from math import floor
@@ -14,10 +15,10 @@ from environment_init_vars import SETTINGS
 from number_types.character_money import CopperPieces, GoldPieces, PlatinumPieces, SilverPieces
 from number_types.downtime import DowntimeStockpile
 from number_types.server_money import GenericMoney
-from pydantic import UUID1, Field, HttpUrl, PlainSerializer, ValidationInfo, field_validator
+from pydantic import UUID1, Field, HttpUrl, PlainSerializer, TypeAdapter, ValidationInfo, field_validator
 from typing_custom import GuildID, UserID
 
-from validation import CustomBaseModel, CustomRootModel
+from validation import PYDANTIC_CONFIG, CustomBaseModel, CustomRootModel
 
 logger = getLogger(__name__)
 
@@ -120,3 +121,17 @@ class UserDBEntryModel(CustomBaseModel):
   guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   user_name: str
   server_money: GenericMoney = GenericMoney(0)
+
+
+GUILDS_TYPE_ADAPTERS = {
+  field: TypeAdapter(fieldinf, config=None if issubclass(fieldinf, (CustomBaseModel, CustomRootModel)) else PYDANTIC_CONFIG)
+  for field, fieldinf in get_annotations(GuildDBEntryModel).items()
+}
+USERS_TYPE_ADAPTERS = {
+  field: TypeAdapter(fieldinf, config=None if issubclass(fieldinf, (CustomBaseModel, CustomRootModel)) else PYDANTIC_CONFIG)
+  for field, fieldinf in get_annotations(UserDBEntryModel).items()
+}
+CHARACTERS_TYPE_ADAPTERS = {
+  field: TypeAdapter(fieldinf, config=None if issubclass(fieldinf, (CustomBaseModel, CustomRootModel)) else PYDANTIC_CONFIG)
+  for field, fieldinf in get_annotations(CharacterDBEntryModel).items()
+}
