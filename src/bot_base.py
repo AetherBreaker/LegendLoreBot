@@ -8,7 +8,7 @@ from traceback import format_exception
 
 from cogs.character_tracking import CharacterTrackingCog
 from cogs.dbcache_refresh_hooks import DatabaseCacheCog
-from cogs.gm_commands import GMCommandsCog
+from cogs.gm_cmds import GMCommandsCog
 from database.cache import DatabaseCache
 from database.db_utils import ensure_guild_exists
 from disnake import ApplicationCommandInteraction, Guild, Intents
