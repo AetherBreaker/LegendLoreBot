@@ -25,14 +25,17 @@ from pydantic_core import from_json
 logger = getLogger(__name__)
 
 
+PYDANTIC_CONFIG = ConfigDict(
+  populate_by_name=True,
+  use_enum_values=True,
+  validate_default=True,
+  validate_assignment=True,
+  coerce_numbers_to_str=True,
+)
+
+
 class CustomRootModel(RootModel):
-  model_config = ConfigDict(
-    populate_by_name=True,
-    use_enum_values=True,
-    validate_default=True,
-    validate_assignment=True,
-    coerce_numbers_to_str=True,
-  )
+  model_config = PYDANTIC_CONFIG
   _dumping_json: bool = False
 
   # @model_serializer(mode="wrap", when_used="json")
@@ -64,13 +67,7 @@ class CustomRootModel(RootModel):
 
 
 class CustomBaseModel(BaseModel):
-  model_config = ConfigDict(
-    populate_by_name=True,
-    use_enum_values=True,
-    validate_default=True,
-    validate_assignment=True,
-    coerce_numbers_to_str=True,
-  )
+  model_config = PYDANTIC_CONFIG
 
   @field_validator("*", mode="wrap", check_fields=False)
   @classmethod
