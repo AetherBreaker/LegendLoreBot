@@ -70,6 +70,8 @@ class DatabaseGuildsColumns(ColNameEnum):
   guild_id = "guild_id"
   guild_name = "guild_name"
   class_list = "class_list"
+  channel_ephem_settings = "channel_ephem_settings"
+  channel_ephem_default = "channel_ephem_default"
 
 
 type DatabaseGuildsIndex = GuildID

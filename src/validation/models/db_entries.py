@@ -98,10 +98,16 @@ class GuildClassList(CustomRootModel):
   root: list[str] = Field(default_factory=list)
 
 
+class GuildChannelEphemSettings(CustomRootModel):
+  root: dict[int, bool] = Field(default_factory=dict)
+
+
 class GuildDBEntryModel(CustomBaseModel):
   guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   guild_name: str
   class_list: GuildClassList = Field(default_factory=GuildClassList)
+  channel_ephem_settings: GuildChannelEphemSettings = Field(default_factory=GuildChannelEphemSettings)
+  channel_ephem_default: bool = True  # True = ephemeral | False = normal
 
   @field_validator("class_list", mode="before")
   @classmethod
