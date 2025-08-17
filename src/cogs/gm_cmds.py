@@ -24,9 +24,9 @@ class GMCommandsCog(Cog):
     self.bot = bot
 
   @slash_command()
-  async def GM(self, _: GuildCommandInteraction): ...
+  async def gm(self, _: GuildCommandInteraction): ...
 
-  @GM.sub_command_group()
+  @gm.sub_command_group()
   async def characters(self, _: GuildCommandInteraction): ...
 
   @characters.sub_command()
@@ -70,12 +70,12 @@ class GMCommandsCog(Cog):
       f"Guild ID: {new_entry.guild_id}\n"
     )
 
-  @GM.sub_command_group()
+  @gm.sub_command_group()
   async def coins(self, _: GuildCommandInteraction): ...
 
   ...
 
-  @GM.sub_command_group()
+  @gm.sub_command_group()
   async def servercoins(self, _: GuildCommandInteraction): ...
 
   ...
