@@ -8,7 +8,7 @@ from traceback import format_exception
 
 from cogs.character import CharacterTracking
 from cogs.dbcache_refresh_hooks import DatabaseCacheCog
-from cogs.staff import StaffCommands
+from cogs.gm_commands import GMCommandsCog
 from database.cache import DatabaseCache
 from database.db_utils import ensure_guild_exists
 from disnake import ApplicationCommandInteraction, Guild, Intents
@@ -36,7 +36,7 @@ class SwallowBot(InteractionBot):
 
     self.add_cog(CharacterTracking(self))
     self.add_cog(DatabaseCacheCog(self))
-    self.add_cog(StaffCommands(self))
+    self.add_cog(GMCommandsCog(self))
 
   async def on_ready(self):
     self.database = DatabaseCache()

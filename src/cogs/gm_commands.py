@@ -19,15 +19,14 @@ if TYPE_CHECKING:
   from bot_base import SwallowBot
 
 
-class StaffCommands(Cog):
+class GMCommandsCog(Cog):
   def __init__(self, bot: "SwallowBot"):
     self.bot = bot
-    self._last_member = None
 
   @slash_command()
-  async def staff(self, _: GuildCommandInteraction): ...
+  async def GM(self, _: GuildCommandInteraction): ...
 
-  @staff.sub_command_group()
+  @GM.sub_command_group()
   async def characters(self, _: GuildCommandInteraction): ...
 
   @characters.sub_command()
@@ -71,17 +70,17 @@ class StaffCommands(Cog):
       f"Guild ID: {new_entry.guild_id}\n"
     )
 
-  @staff.sub_command_group()
+  @GM.sub_command_group()
   async def coins(self, _: GuildCommandInteraction): ...
 
   ...
 
-  @staff.sub_command_group()
+  @GM.sub_command_group()
   async def servercoins(self, _: GuildCommandInteraction): ...
 
   ...
 
 
 def setup(bot: "SwallowBot"):
-  bot.add_cog(StaffCommands(bot))
-  print("StaffCommands loaded.")
+  bot.add_cog(GMCommandsCog(bot))
+  print("GMCommandsCog loaded.")
