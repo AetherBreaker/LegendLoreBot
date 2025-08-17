@@ -148,7 +148,7 @@ class CharacterTrackingCog(Cog):
       await self.bot.database.characters.update_row(character.character_uid, character)
       await inter.send(f"Token URL set for character {character.character_name}: {token_url}.")
 
-    except ValidationError as e:
+    except ValidationError:
       await inter.send("Invalid URL format.")
       return
 

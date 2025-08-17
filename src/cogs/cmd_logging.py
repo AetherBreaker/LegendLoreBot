@@ -6,10 +6,7 @@ if __name__ == "__main__":
 from logging import getLogger
 from typing import TYPE_CHECKING
 
-from autocomplete.command_autocompleters import autocomp_charname
-from disnake import ApplicationCommandInteraction, Embed
-from disnake.ext.commands import Cog, Param, slash_command
-from pydantic import ValidationError
+from disnake.ext.commands import Cog
 
 if TYPE_CHECKING:
   from bot_base import SwallowBot
