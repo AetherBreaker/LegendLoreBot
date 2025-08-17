@@ -18,10 +18,9 @@ if TYPE_CHECKING:
 logger = getLogger(__name__)
 
 
-class CharacterTracking(Cog):
+class CharacterTrackingCog(Cog):
   def __init__(self, bot: "SwallowBot"):
     self.bot = bot
-    self._last_member = None
 
   @slash_command()
   async def characters(self, _: ApplicationCommandInteraction): ...
@@ -208,5 +207,5 @@ class CharacterTracking(Cog):
 
 
 def setup(bot: "SwallowBot"):
-  bot.add_cog(CharacterTracking(bot))
-  print("CharacterTracking loaded.")
+  bot.add_cog(CharacterTrackingCog(bot))
+  print("CharacterTrackingCog loaded.")

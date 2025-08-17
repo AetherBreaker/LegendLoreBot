@@ -6,7 +6,7 @@ if __name__ == "__main__":
 from logging import getLogger
 from traceback import format_exception
 
-from cogs.character import CharacterTracking
+from cogs.character_tracking import CharacterTrackingCog
 from cogs.dbcache_refresh_hooks import DatabaseCacheCog
 from cogs.gm_commands import GMCommandsCog
 from database.cache import DatabaseCache
@@ -34,7 +34,7 @@ class SwallowBot(InteractionBot):
       reload=bool(__debug__),
     )
 
-    self.add_cog(CharacterTracking(self))
+    self.add_cog(CharacterTrackingCog(self))
     self.add_cog(DatabaseCacheCog(self))
     self.add_cog(GMCommandsCog(self))
 
