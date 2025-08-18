@@ -6,7 +6,7 @@ if __name__ == "__main__":
 from logging import getLogger
 from typing import TYPE_CHECKING
 
-from autocomplete.command_autocompleters import autocomp_charname
+from autocomplete.command_autocompleters import autocomp_all_classnames, autocomp_char_classname, autocomp_charname
 from disnake import ApplicationCommandInteraction, Embed
 from disnake.ext.commands import Cog, Param, slash_command
 from pydantic import ValidationError
@@ -219,20 +219,48 @@ class CharacterTrackingCog(Cog):
     else:
       await inter.send(f"Class {class_name} not found for character {character_name}.")
 
+  @characters.sub_command()
+  async def update_class_level(
+    self,
+    inter: ApplicationCommandInteraction,
+    character_name: str,
+    class_name: str,
+    class_level: int = Param(gt=0, lt=21),
+  ):
+    character = (
+      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+      if inter.guild_id is None
+      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+    )
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    char_classes = character.classes
+
+    if class_name in char_classes.root:
+      char_classes.root[class_name] = class_level
+      character.classes = char_classes  # Reassign to ensure validation
+      await self.bot.database.characters.update_row(character.character_uid, character)
+      await inter.send(f"Updated class {class_name} to level {class_level} for character {character_name}.")
+    else:
+      await inter.send(f"Class {class_name} not found for character {character_name}.")
+
   # Add the autocomplete function without having to make character_name the last param
   add_art.autocomplete("character_name")(autocomp_charname)
   remove_art.autocomplete("character_name")(autocomp_charname)
   set_token.autocomplete("character_name")(autocomp_charname)
   add_class.autocomplete("character_name")(autocomp_charname)
   remove_class.autocomplete("character_name")(autocomp_charname)
-  update_class.autocomplete("character_name")(autocomp_charname)
+  update_class_level.autocomplete("character_name")(autocomp_charname)
 
   # add guildwide classname autocompleter
   add_class.autocomplete("class_name")(autocomp_all_classnames)
 
   # add specific char classname autocompleter
   remove_class.autocomplete("class_name")(autocomp_char_classname)
-  update_class.autocomplete("class_name")(autocomp_char_classname)
+  update_class_level.autocomplete("class_name")(autocomp_char_classname)
 
 
 def setup(bot: "SwallowBot"):
