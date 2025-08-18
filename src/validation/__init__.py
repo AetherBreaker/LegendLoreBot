@@ -34,7 +34,7 @@ PYDANTIC_CONFIG = ConfigDict(
 )
 
 
-class CustomRootModel(RootModel):
+class CustomRootModel[T](RootModel[T]):
   model_config = PYDANTIC_CONFIG
   _dumping_json: bool = False
 

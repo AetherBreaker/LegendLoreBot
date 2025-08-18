@@ -48,11 +48,11 @@ level_milestone_rates = {
 tier_rate = [floor((i + 1) / 2) for i in range(2, 11)]
 
 
-class CharacterClassesModel(CustomRootModel):
+class CharacterClassesModel(CustomRootModel[dict[str, int]]):
   root: dict[str, int] = Field(default_factory=dict)
 
 
-class CharacterImgURLs(CustomRootModel):
+class CharacterImgURLs(CustomRootModel[list[HttpUrl]]):
   root: list[HttpUrl] = Field(default_factory=list)
 
 
@@ -95,11 +95,11 @@ class CharacterDBEntryModel(CustomBaseModel):
     return cls.model_fields[info.field_name].get_default(call_default_factory=True) if val is None else val  # type: ignore
 
 
-class GuildClassList(CustomRootModel):
-  root: list[str] = Field(default_factory=list)
+class GuildClassList(CustomRootModel[set[str]]):
+  root: set[str] = Field(default_factory=set)
 
 
-class GuildChannelEphemSettings(CustomRootModel):
+class GuildChannelEphemSettings(CustomRootModel[dict[int, bool]]):
   root: dict[int, bool] = Field(default_factory=dict)
 
 

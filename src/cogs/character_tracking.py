@@ -96,7 +96,13 @@ class CharacterTrackingCog(Cog):
       await inter.send("Character not found.")
       return
 
-    character.images.root.append(image_url)  # type: ignore
+    char_images = character.images
+
+    char_images.root.append(image_url)  # type: ignore
+
+    # Assign back to the model to ensure the updated data receives validation
+    character.images = char_images
+
     await self.bot.database.characters.update_row(character.character_uid, character)
     await inter.send(f"Character art added.\n{image_url}")
 
@@ -117,11 +123,15 @@ class CharacterTrackingCog(Cog):
       await inter.send("Character not found.")
       return
 
+    char_images = character.images
+
     try:
-      removed_art = character.images.root.pop(art_position - 1)
+      removed_art = char_images.root.pop(art_position - 1)
     except IndexError:
       await inter.send("Art not found.")
       return
+
+    character.images = char_images  # Reassign to ensure validation
 
     await self.bot.database.characters.update_row(character.character_uid, character)
     await inter.send(f"Removed art from character.\n{removed_art}")
@@ -172,7 +182,11 @@ class CharacterTrackingCog(Cog):
       await inter.send("Character not found.")
       return
 
-    character.classes.root[class_name] = class_level
+    char_classes = character.classes
+
+    char_classes.root[class_name] = class_level
+
+    character.classes = char_classes  # Reassign to ensure validation
     await self.bot.database.characters.update_row(character.character_uid, character)
     await inter.send(f"Added class {class_name} (Level {class_level}) to character {character_name}.")
 
@@ -193,8 +207,13 @@ class CharacterTrackingCog(Cog):
       await inter.send("Character not found.")
       return
 
-    if class_name in character.classes.root:
-      del character.classes.root[class_name]
+    char_classes = character.classes
+
+    if class_name in char_classes.root:
+      del char_classes.root[class_name]
+
+      character.classes = char_classes  # Reassign to ensure validation
+
       await self.bot.database.characters.update_row(character.character_uid, character)
       await inter.send(f"Removed class {class_name} from character {character_name}.")
     else:
