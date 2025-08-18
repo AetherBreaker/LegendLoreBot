@@ -223,6 +223,16 @@ class CharacterTrackingCog(Cog):
   add_art.autocomplete("character_name")(autocomp_charname)
   remove_art.autocomplete("character_name")(autocomp_charname)
   set_token.autocomplete("character_name")(autocomp_charname)
+  add_class.autocomplete("character_name")(autocomp_charname)
+  remove_class.autocomplete("character_name")(autocomp_charname)
+  update_class.autocomplete("character_name")(autocomp_charname)
+
+  # add guildwide classname autocompleter
+  add_class.autocomplete("class_name")(autocomp_all_classnames)
+
+  # add specific char classname autocompleter
+  remove_class.autocomplete("class_name")(autocomp_char_classname)
+  update_class.autocomplete("class_name")(autocomp_char_classname)
 
 
 def setup(bot: "SwallowBot"):
