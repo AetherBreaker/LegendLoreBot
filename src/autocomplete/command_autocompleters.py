@@ -23,7 +23,7 @@ type AutocompChoice = CharacterName
 type AutocompValue = CharacterUID | DiscriminateChoices
 
 
-@prepass_cache
+@prepass_cache(name="charname")
 async def autocomp_charname(cache: AutocompCache[set[CharacterName]], inter: ApplicationCommandInteraction, user_input: str) -> list[str]:
   # Grab the singleton instance of our database accessor
   db = DatabaseCache()
