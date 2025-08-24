@@ -14,7 +14,6 @@ from uuid import uuid1
 from environment_init_vars import SETTINGS
 from number_types.character_money import CopperPieces, GoldPieces, PlatinumPieces, SilverPieces
 from number_types.downtime import DowntimeStockpile
-from number_types.server_money import GenericMoney
 from pydantic import UUID1, Field, HttpUrl, PlainSerializer, TypeAdapter, ValidationInfo, field_validator
 from typing_custom import GuildID, UserID
 
@@ -120,7 +119,7 @@ class UserDBEntryModel(CustomBaseModel):
   user_id: Annotated[UserID, PlainSerializer(str, when_used="json")]
   guild_id: Annotated[GuildID, PlainSerializer(str, when_used="json")]
   user_name: str
-  server_money: GenericMoney = GenericMoney(0)
+  server_money: int = 0
 
 
 GUILDS_TYPE_ADAPTERS = {
