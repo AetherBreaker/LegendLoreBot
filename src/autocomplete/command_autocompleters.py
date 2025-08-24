@@ -41,11 +41,8 @@ async def autocomp_charname(cache: AutocompCache[set[CharacterName]], inter: App
       # select the character names column, filtered by the current interactions guildid and userid
       selection = characters.loc[search_index, DatabaseCharactersColumns.character_name]
 
-    # drop the unecessary index levels
-    almost = selection.droplevel([DatabaseCharactersColumns.user_id, DatabaseCharactersColumns.guild_id])
-
     # cast the resulting series to a dict of uid -> character name pairs
-    names: set[CharacterName] = set(almost.tolist())
+    names: set[CharacterName] = set(selection.tolist())
 
     cache[search_index] = names
 
