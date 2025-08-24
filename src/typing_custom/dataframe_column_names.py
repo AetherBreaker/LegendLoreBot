@@ -101,6 +101,7 @@ class DatabaseCharactersColumns(ColNameEnum):
   level_rate = "level_rate"
   milestones = "milestones"
   mythic_trials = "mythic_trials"
+  epic_deeds = "epic_deeds"
   money_pp = "money_pp"
   money_gp = "money_gp"
   money_sp = "money_sp"

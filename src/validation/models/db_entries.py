@@ -65,6 +65,7 @@ class CharacterDBEntryModel(CustomBaseModel):
   level_rate: Literal["medium", "slow"] = "medium"
   milestones: int = 0
   mythic_trials: int = 0
+  epic_deeds: int = 0
   money_pp: PlatinumPieces = PlatinumPieces(0)
   money_gp: GoldPieces = GoldPieces(0)
   money_sp: SilverPieces = SilverPieces(0)
