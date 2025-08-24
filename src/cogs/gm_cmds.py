@@ -6,10 +6,12 @@ if __name__ == "__main__":
 from logging import getLogger
 from typing import TYPE_CHECKING, Literal
 
+from autocomplete.command_autocompleters import autocomp_other_charname
 from database.db_utils import ensure_user_exists
 from disnake import GuildCommandInteraction, User
 from disnake.ext.commands import Cog, Param, slash_command
 from pydantic import ValidationError
+from typing_custom.enums import CustomEvent
 from validation.models.db_entries import CharacterDBEntryModel
 
 logger = getLogger(__name__)
@@ -26,11 +28,13 @@ class GMCommandsCog(Cog):
   @slash_command()
   async def gm(self, _: GuildCommandInteraction): ...
 
+  # Characters #####################################################################
+
   @gm.sub_command_group()
   async def characters(self, _: GuildCommandInteraction): ...
 
-  @characters.sub_command()
-  async def add(
+  @characters.sub_command(name="add")
+  async def char_add(
     self,
     inter: GuildCommandInteraction,
     player: User,
@@ -70,15 +74,194 @@ class GMCommandsCog(Cog):
       f"Guild ID: {new_entry.guild_id}\n"
     )
 
+  # Milestones #####################################################################
+
+  @gm.sub_command_group()
+  async def milestones(self, _: GuildCommandInteraction): ...
+
+  @milestones.sub_command(name="add")
+  async def milestones_add(
+    self,
+    inter: GuildCommandInteraction,
+    player: User,
+    character_name: str,
+    milestone_amount: int = Param(gt=0),
+  ):
+    if inter.user.id == player.id:
+      await inter.send("You can't change your own character's data. Get someone else to do it!")
+      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "milestones_amount", milestone_amount)
+
+    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    character.milestones += milestone_amount
+    await self.bot.database.characters.update_row(character.character_uid, character)
+
+    await inter.send(f"Added {milestone_amount} milestones to character {character.character_name}. Total milestones: {character.milestones}")
+
+    self.bot.dispatch(CustomEvent.on_character_milestones_changed, inter.user, player, character_name, milestone_amount)
+
+  @milestones.sub_command(name="remove")
+  async def milestones_remove(
+    self,
+    inter: GuildCommandInteraction,
+    player: User,
+    character_name: str,
+    milestone_amount: int = Param(gt=0),
+  ):
+    if inter.user.id == player.id:
+      await inter.send("You can't change your own character's data. Get someone else to do it!")
+      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "milestones_amount", -milestone_amount)
+
+    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    character.milestones -= milestone_amount
+    await self.bot.database.characters.update_row(character.character_uid, character)
+
+    await inter.send(f"Removed {milestone_amount} milestones from character {character.character_name}. Total milestones: {character.milestones}")
+
+    self.bot.dispatch(CustomEvent.on_character_milestones_changed, inter.user, player, character_name, -milestone_amount)
+
+  # Mythic Trials ###################################################################
+
+  @gm.sub_command_group()
+  async def mythic_trials(self, _: GuildCommandInteraction): ...
+
+  @mythic_trials.sub_command(name="add")
+  async def trials_add(
+    self,
+    inter: GuildCommandInteraction,
+    player: User,
+    character_name: str,
+    trials_amount: int = Param(gt=0),
+  ):
+    if inter.user.id == player.id:
+      await inter.send("You can't change your own character's data. Get someone else to do it!")
+      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "mythic_trials", trials_amount)
+
+    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    character.mythic_trials += trials_amount
+    await self.bot.database.characters.update_row(character.character_uid, character)
+
+    await inter.send(f"Added {trials_amount} mythic trials to character {character.character_name}. Total mythic trials: {character.mythic_trials}")
+
+    self.bot.dispatch(CustomEvent.on_character_trials_changed, inter.user, player, character_name, trials_amount)
+
+  @mythic_trials.sub_command(name="remove")
+  async def trials_remove(
+    self,
+    inter: GuildCommandInteraction,
+    player: User,
+    character_name: str,
+    trials_amount: int = Param(gt=0),
+  ):
+    if inter.user.id == player.id:
+      await inter.send("You can't change your own character's data. Get someone else to do it!")
+      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "mythic_trials", -trials_amount)
+
+    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    character.mythic_trials -= trials_amount
+    await self.bot.database.characters.update_row(character.character_uid, character)
+
+    await inter.send(
+      f"Removed {trials_amount} mythic trials from character {character.character_name}. Total mythic trials: {character.mythic_trials}"
+    )
+
+    self.bot.dispatch(CustomEvent.on_character_trials_changed, inter.user, player, character_name, -trials_amount)
+
+  # Epic Deeds #####################################################################
+
+  @gm.sub_command_group()
+  async def epic(self, _: GuildCommandInteraction): ...
+
+  @epic.sub_command(name="add")
+  async def epic_add(
+    self,
+    inter: GuildCommandInteraction,
+    player: User,
+    character_name: str,
+    deeds_amount: int = Param(gt=0),
+  ):
+    if inter.user.id == player.id:
+      await inter.send("You can't change your own character's data. Get someone else to do it!")
+      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "epic_deeds", deeds_amount)
+
+    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    character.epic_deeds += deeds_amount
+    await self.bot.database.characters.update_row(character.character_uid, character)
+
+    await inter.send(f"Added {deeds_amount} epic deeds to character {character.character_name}. Total epic deeds: {character.epic_deeds}")
+
+    self.bot.dispatch(CustomEvent.on_character_deeds_changed, inter.user, player, character_name, deeds_amount)
+
+  @epic.sub_command(name="remove")
+  async def epic_remove(
+    self,
+    inter: GuildCommandInteraction,
+    player: User,
+    character_name: str,
+    deeds_amount: int = Param(gt=0),
+  ):
+    if inter.user.id == player.id:
+      await inter.send("You can't change your own character's data. Get someone else to do it!")
+      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "epic_deeds", -deeds_amount)
+
+    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
+
+    if character is None:
+      await inter.send("Character not found.")
+      return
+
+    character.epic_deeds -= deeds_amount
+    await self.bot.database.characters.update_row(character.character_uid, character)
+
+    await inter.send(f"Removed {deeds_amount} epic deeds from character {character.character_name}. Total epic deeds: {character.epic_deeds}")
+
+    self.bot.dispatch(CustomEvent.on_character_deeds_changed, inter.user, player, character_name, -deeds_amount)
+
+  # Currency #######################################################################
+
   @gm.sub_command_group()
   async def coins(self, _: GuildCommandInteraction): ...
 
   ...
 
+  # BC #############################################################################
+
   @gm.sub_command_group()
   async def servercoins(self, _: GuildCommandInteraction): ...
 
   ...
+
+  # Autocompleters #################################################################
+  milestones_add.autocomplete("character_name")(autocomp_other_charname)
+  milestones_remove.autocomplete("character_name")(autocomp_other_charname)
+  trials_add.autocomplete("character_name")(autocomp_other_charname)
+  trials_remove.autocomplete("character_name")(autocomp_other_charname)
+  epic_add.autocomplete("character_name")(autocomp_other_charname)
+  epic_remove.autocomplete("character_name")(autocomp_other_charname)
 
 
 def setup(bot: "LegendLoreBot"):
