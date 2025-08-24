@@ -7,7 +7,7 @@ from logging import getLogger
 
 from component_menus.choice_discriminator import DiscriminateChoices
 from database.cache import DatabaseCache, DatabaseCharactersColumns
-from disnake import ApplicationCommandInteraction
+from disnake import ApplicationCommandInteraction, GuildCommandInteraction, User
 from rapidfuzz.process import extract
 from typing_custom import CharacterUID
 from typing_custom.dataframe_column_names import DatabaseGuildsColumns
@@ -33,6 +33,37 @@ async def autocomp_self_charname(cache: AutocompCache[set[CharacterName]], inter
     if inter.guild_id is not None
     else (slice(None), inter.user.id, slice(None), slice(None))
   )
+
+  cached_query = cache.get(search_index)
+  if cached_query is None:
+    # enter context manager for db.characters
+    async with db.characters as characters:
+      # select the character names column, filtered by the current interactions guildid and userid
+      selection = characters.loc[search_index, DatabaseCharactersColumns.character_name]
+
+    # cast the resulting series to a dict of uid -> character name pairs
+    names: set[CharacterName] = set(selection.tolist())
+
+    cache[search_index] = names
+
+  else:
+    names: set[CharacterName] = cached_query
+
+  # rapidfuzz the user_input against the character name keys of the resulting dict
+  return [option for option, _, _ in extract(user_input, names, limit=5)]
+
+
+@prepass_cache(name="charname")
+async def autocomp_other_charname(cache: AutocompCache[set[CharacterName]], inter: GuildCommandInteraction, user_input: str) -> list[str]:
+  # Grab the singleton instance of our database accessor
+  db = DatabaseCache()
+
+  user: User | None = inter.filled_options.get("player")
+
+  if user is None:
+    return []
+
+  search_index = (slice(None), user.id, inter.guild_id, slice(None))
 
   cached_query = cache.get(search_index)
   if cached_query is None:
