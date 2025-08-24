@@ -5,11 +5,11 @@ if __name__ == "__main__":
 
 from logging import getLogger
 
-from bot_base import SwallowBot
+from bot_base import LegendLoreBot
 from environment_init_vars import SETTINGS
 
 logger = getLogger(__name__)
 
 if __name__ == "__main__":
-  client = SwallowBot()
+  client = LegendLoreBot()
   client.run(SETTINGS.token)

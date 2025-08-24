@@ -14,14 +14,14 @@ from disnake.ext.commands import Cog, Param, slash_command
 from validation.models.db_entries import GuildChannelEphemSettings
 
 if TYPE_CHECKING:
-  from bot_base import SwallowBot
+  from bot_base import LegendLoreBot
 
 
 logger = getLogger(__name__)
 
 
 class StaffCommandsCog(Cog):
-  def __init__(self, bot: "SwallowBot"):
+  def __init__(self, bot: "LegendLoreBot"):
     self.bot = bot
 
   @slash_command()
@@ -84,6 +84,6 @@ class StaffCommandsCog(Cog):
     await inter.send(f"Channel {channel_id} has been set to {option}.")
 
 
-def setup(bot: "SwallowBot"):
+def setup(bot: "LegendLoreBot"):
   bot.add_cog(StaffCommandsCog(bot))
   print("StaffCommandsCog loaded.")

@@ -18,7 +18,7 @@ from environment_init_vars import OWNER_IDS, TEST_GUILDS
 logger = getLogger(__name__)
 
 
-class SwallowBot(InteractionBot):
+class LegendLoreBot(InteractionBot):
   database: DatabaseCache
 
   def __init__(self, *args, **kwargs):

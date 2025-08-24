@@ -16,11 +16,11 @@ logger = getLogger(__name__)
 
 
 if TYPE_CHECKING:
-  from bot_base import SwallowBot
+  from bot_base import LegendLoreBot
 
 
 class GMCommandsCog(Cog):
-  def __init__(self, bot: "SwallowBot"):
+  def __init__(self, bot: "LegendLoreBot"):
     self.bot = bot
 
   @slash_command()
@@ -81,6 +81,6 @@ class GMCommandsCog(Cog):
   ...
 
 
-def setup(bot: "SwallowBot"):
+def setup(bot: "LegendLoreBot"):
   bot.add_cog(GMCommandsCog(bot))
   print("GMCommandsCog loaded.")

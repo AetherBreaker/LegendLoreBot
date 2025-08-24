@@ -9,17 +9,17 @@ from typing import TYPE_CHECKING
 from disnake.ext.commands import Cog
 
 if TYPE_CHECKING:
-  from bot_base import SwallowBot
+  from bot_base import LegendLoreBot
 
 
 logger = getLogger(__name__)
 
 
 class AppCMDLoggingCog(Cog):
-  def __init__(self, bot: "SwallowBot"):
+  def __init__(self, bot: "LegendLoreBot"):
     self.bot = bot
 
 
-def setup(bot: "SwallowBot"):
+def setup(bot: "LegendLoreBot"):
   bot.add_cog(AppCMDLoggingCog(bot))
   print("AppCMDLoggingCog loaded.")

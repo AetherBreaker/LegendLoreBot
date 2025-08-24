@@ -12,13 +12,13 @@ from disnake.ext.tasks import loop
 from environment_init_vars import SETTINGS
 
 if TYPE_CHECKING:
-  from bot_base import SwallowBot
+  from bot_base import LegendLoreBot
 
 logger = getLogger(__name__)
 
 
 class DatabaseCacheCog(Cog):
-  def __init__(self, bot: "SwallowBot") -> None:
+  def __init__(self, bot: "LegendLoreBot") -> None:
     self.bot = bot
     self.refresh_cache_task.start()
     self.write_changes_task.start()
@@ -62,6 +62,6 @@ class DatabaseCacheCog(Cog):
     await sleep(SETTINGS.database_write_interval)
 
 
-def setup(bot: "SwallowBot"):
+def setup(bot: "LegendLoreBot"):
   bot.add_cog(DatabaseCacheCog(bot))
   print("DatabaseCacheCog loaded.")

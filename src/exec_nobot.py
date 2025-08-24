@@ -6,7 +6,7 @@ if __name__ == "__main__":
 from asyncio import run
 from logging import getLogger
 
-from bot_base import SwallowBot
+from bot_base import LegendLoreBot
 from database.cache import DatabaseCache
 from environment_init_vars import SETTINGS
 from validation.models.db_entries import GuildDBEntryModel

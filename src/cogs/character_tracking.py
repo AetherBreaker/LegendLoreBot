@@ -12,14 +12,14 @@ from disnake.ext.commands import Cog, Param, slash_command
 from pydantic import ValidationError
 
 if TYPE_CHECKING:
-  from bot_base import SwallowBot
+  from bot_base import LegendLoreBot
 
 
 logger = getLogger(__name__)
 
 
 class CharacterTrackingCog(Cog):
-  def __init__(self, bot: "SwallowBot"):
+  def __init__(self, bot: "LegendLoreBot"):
     self.bot = bot
 
   @slash_command()
@@ -263,6 +263,6 @@ class CharacterTrackingCog(Cog):
   update_class_level.autocomplete("class_name")(autocomp_char_classname)
 
 
-def setup(bot: "SwallowBot"):
+def setup(bot: "LegendLoreBot"):
   bot.add_cog(CharacterTrackingCog(bot))
   print("CharacterTrackingCog loaded.")
