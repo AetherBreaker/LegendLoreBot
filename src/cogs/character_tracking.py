@@ -11,6 +11,8 @@ from disnake import ApplicationCommandInteraction, Embed
 from disnake.ext.commands import Cog, Param, slash_command
 from pydantic import ValidationError
 
+from cogs.cog_utils import run_ephemerally
+
 if TYPE_CHECKING:
   from bot_base import LegendLoreBot
 
@@ -33,11 +35,8 @@ class CharacterTrackingCog(Cog):
     inter: ApplicationCommandInteraction,
     character_name: str = Param(autocomplete=autocomp_self_charname),
   ):
-    character = (
-      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
-      if inter.guild_id is None
-      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
-    )
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+
     guild = self.bot.get_guild(character.guild_id) if inter.guild_id is None else inter.guild
     if guild is None:
       guild = await self.bot.fetch_guild(character.guild_id)
@@ -75,7 +74,7 @@ class CharacterTrackingCog(Cog):
       embeds[0].set_image(url=character.images.root[0])
       embeds.extend(Embed().set_image(url=str(url)) for url in character.images.root[1:])
 
-    await inter.send(embeds=embeds)
+    await inter.send(embeds=embeds, ephemeral=run_ephemeral)
 
   # Art and images
 
@@ -86,14 +85,11 @@ class CharacterTrackingCog(Cog):
     character_name: str,
     image_url: str,
   ):
-    character = (
-      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
-      if inter.guild_id is None
-      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
-    )
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+
 
     if character is None:
-      await inter.send("Character not found.")
+      await inter.send("Character not found.", ephemeral=run_ephemeral)
       return
 
     char_images = character.images
@@ -104,7 +100,7 @@ class CharacterTrackingCog(Cog):
     character.images = char_images
 
     await self.bot.database.characters.update_row(character.character_uid, character)
-    await inter.send(f"Character art added.\n{image_url}")
+    await inter.send(f"Character art added.\n{image_url}", ephemeral=run_ephemeral)
 
   @characters.sub_command()
   async def remove_art(
@@ -113,14 +109,11 @@ class CharacterTrackingCog(Cog):
     character_name: str,
     art_position: int = Param(description="Position of the art to remove, starting from 1."),
   ):
-    character = (
-      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
-      if inter.guild_id is None
-      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
-    )
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+
 
     if character is None:
-      await inter.send("Character not found.")
+      await inter.send("Character not found.", ephemeral=run_ephemeral)
       return
 
     char_images = character.images
@@ -128,13 +121,13 @@ class CharacterTrackingCog(Cog):
     try:
       removed_art = char_images.root.pop(art_position - 1)
     except IndexError:
-      await inter.send("Art not found.")
+      await inter.send("Art not found.", ephemeral=run_ephemeral)
       return
 
     character.images = char_images  # Reassign to ensure validation
 
     await self.bot.database.characters.update_row(character.character_uid, character)
-    await inter.send(f"Removed art from character.\n{removed_art}")
+    await inter.send(f"Removed art from character.\n{removed_art}", ephemeral=run_ephemeral)
 
   @characters.sub_command()
   async def set_token(
@@ -143,23 +136,20 @@ class CharacterTrackingCog(Cog):
     character_name: str,
     token_url: str,
   ):
-    character = (
-      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
-      if inter.guild_id is None
-      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
-    )
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+
 
     if character is None:
-      await inter.send("Character not found.")
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
       return
 
     try:
       character.token_url = token_url  # type: ignore
       await self.bot.database.characters.update_row(character.character_uid, character)
-      await inter.send(f"Token URL set for character {character.character_name}: {token_url}.")
+      await inter.send(f"Token URL set for character {character.character_name}: {token_url}.", ephemeral=run_ephemeral)
 
     except ValidationError:
-      await inter.send("Invalid URL format.")
+      await inter.send("Invalid URL format.", ephemeral=run_ephemeral)
       return
 
   # Character classes
@@ -172,14 +162,11 @@ class CharacterTrackingCog(Cog):
     class_name: str,
     class_level: int = Param(gt=0, lt=21),
   ):
-    character = (
-      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
-      if inter.guild_id is None
-      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
-    )
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+
 
     if character is None:
-      await inter.send("Character not found.")
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
       return
 
     char_classes = character.classes
@@ -188,7 +175,7 @@ class CharacterTrackingCog(Cog):
 
     character.classes = char_classes  # Reassign to ensure validation
     await self.bot.database.characters.update_row(character.character_uid, character)
-    await inter.send(f"Added class {class_name} (Level {class_level}) to character {character_name}.")
+    await inter.send(f"Added class {class_name} (Level {class_level}) to character {character_name}.", ephemeral=run_ephemeral)
 
   @characters.sub_command()
   async def remove_class(
@@ -197,14 +184,11 @@ class CharacterTrackingCog(Cog):
     character_name: str,
     class_name: str,
   ):
-    character = (
-      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
-      if inter.guild_id is None
-      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
-    )
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+
 
     if character is None:
-      await inter.send("Character not found.")
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
       return
 
     char_classes = character.classes
@@ -215,9 +199,9 @@ class CharacterTrackingCog(Cog):
       character.classes = char_classes  # Reassign to ensure validation
 
       await self.bot.database.characters.update_row(character.character_uid, character)
-      await inter.send(f"Removed class {class_name} from character {character_name}.")
+      await inter.send(f"Removed class {class_name} from character {character_name}.", ephemeral=run_ephemeral)
     else:
-      await inter.send(f"Class {class_name} not found for character {character_name}.")
+      await inter.send(f"Class {class_name} not found for character {character_name}.", ephemeral=run_ephemeral)
 
   @characters.sub_command()
   async def update_class_level(
@@ -227,14 +211,11 @@ class CharacterTrackingCog(Cog):
     class_name: str,
     class_level: int = Param(gt=0, lt=21),
   ):
-    character = (
-      await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
-      if inter.guild_id is None
-      else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
-    )
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+
 
     if character is None:
-      await inter.send("Character not found.")
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
       return
 
     char_classes = character.classes
@@ -243,9 +224,9 @@ class CharacterTrackingCog(Cog):
       char_classes.root[class_name] = class_level
       character.classes = char_classes  # Reassign to ensure validation
       await self.bot.database.characters.update_row(character.character_uid, character)
-      await inter.send(f"Updated class {class_name} to level {class_level} for character {character_name}.")
+      await inter.send(f"Updated class {class_name} to level {class_level} for character {character_name}.", ephemeral=run_ephemeral)
     else:
-      await inter.send(f"Class {class_name} not found for character {character_name}.")
+      await inter.send(f"Class {class_name} not found for character {character_name}.", ephemeral=run_ephemeral)
 
   # Add the autocomplete function without having to make character_name the last param
   add_art.autocomplete("character_name")(autocomp_self_charname)
