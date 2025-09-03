@@ -21,9 +21,7 @@ class CustomEvent(CustomStrEnum):
 
   on_character_class_changed = auto()
 
-  on_character_milestones_changed = auto()
-  on_character_trials_changed = auto()
-  on_character_deeds_changed = auto()
+  on_character_attr_changed = auto()
 
   on_character_money_changed = auto()
   on_character_art_changed = auto()
