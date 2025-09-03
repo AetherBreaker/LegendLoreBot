@@ -87,6 +87,7 @@ class GMCommandsCog(Cog):
     character_name: str,
     milestone_amount: int = Param(gt=0),
   ):
+    # TODO add checks to prevent adding more milestones than should be possible
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "milestones_amount", milestone_amount)
@@ -113,6 +114,8 @@ class GMCommandsCog(Cog):
     character_name: str,
     milestone_amount: int = Param(gt=0),
   ):
+    # TODO add checks to prevent removing more milestones than the character has
+
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "milestones_amount", -milestone_amount)
@@ -170,6 +173,8 @@ class GMCommandsCog(Cog):
     character_name: str,
     trials_amount: int = Param(gt=0),
   ):
+    # TODO add checks to prevent removing more trials than the character has
+
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "mythic_trials", -trials_amount)
@@ -229,6 +234,7 @@ class GMCommandsCog(Cog):
     character_name: str,
     deeds_amount: int = Param(gt=0),
   ):
+    # TODO add checks to prevent removing more deeds than the character has
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "epic_deeds", -deeds_amount)
