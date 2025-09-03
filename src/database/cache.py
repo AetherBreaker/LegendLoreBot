@@ -418,7 +418,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
 
 
 class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
-  _range_format_single = "Guilds!{cell}}"
+  _range_format_single = "Guilds!{cell}"
   _range_format = "Guilds!{start}:{end}"
   _field_type_adapters = GUILDS_TYPE_ADAPTERS
 
