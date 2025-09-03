@@ -26,13 +26,13 @@ class StaffCommandsCog(Cog):
     self.bot = bot
 
   @slash_command()
-  @default_member_permissions(manage_channels=True)
+  @default_member_permissions(administrator=True)
   @contexts(guild=True)
   @install_types(guild=True)
-  async def staff(self, inter: GuildCommandInteraction): ...
+  async def staff(self, _: GuildCommandInteraction): ...
 
   @staff.sub_command_group()
-  async def silence_cmds(self, inter: GuildCommandInteraction): ...
+  async def silence_cmds(self, _: GuildCommandInteraction): ...
 
   @silence_cmds.sub_command()
   async def server_default(
@@ -49,7 +49,7 @@ class StaffCommandsCog(Cog):
     """
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
-    ta, guild_setting = await self.bot.database.guilds.read_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_default, validate=True)
+    guild_setting = await self.bot.database.guilds.read_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_default)
 
     match option:
       case "ephemeral":
@@ -59,7 +59,7 @@ class StaffCommandsCog(Cog):
       case None:
         setting = not guild_setting
 
-    await self.bot.database.guilds.write_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_default, setting, ta=ta)
+    await self.bot.database.guilds.write_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_default, setting)
 
     await inter.send(f"Silent execution mode default has been set to {'ephemeral' if setting else 'normal'}.", ephemeral=run_ephemeral)
 
@@ -74,9 +74,7 @@ class StaffCommandsCog(Cog):
 
     channel: GuildChannel = inter.channel if channel is None else channel  # type: ignore
 
-    ta, guild_ephem_channel_settings = await self.bot.database.guilds.read_value(
-      inter.guild_id, DatabaseGuildsColumns.channel_ephem_settings, validate=True
-    )
+    guild_ephem_channel_settings = await self.bot.database.guilds.read_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_settings)
     guild_ephem_channel_settings: GuildChannelEphemSettings
 
     # if setting is None, we flip whatever value already exists.
@@ -108,8 +106,7 @@ class StaffCommandsCog(Cog):
     await self.bot.database.guilds.write_value(
       inter.guild_id,
       DatabaseGuildsColumns.channel_ephem_settings,
-      ta.validate_python(guild_ephem_channel_settings),
-      ta=ta,
+      guild_ephem_channel_settings,
     )
 
 

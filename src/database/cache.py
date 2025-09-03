@@ -7,7 +7,7 @@ from asyncio import get_running_loop, sleep
 from collections.abc import Sequence
 from copy import deepcopy
 from logging import getLogger
-from typing import Any, Literal, Optional, overload
+from typing import Any, Optional
 
 from aiologic import Lock
 from aiorwlock import RWLock
@@ -321,14 +321,9 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     else:
       return self._model.model_construct(**row)
 
-  async def read_value(self, index, col, validate: bool = False) -> tuple[TypeAdapter[Any], Any] | Any:
+  async def read_value(self, index, col) -> Any:
     async with self._core._read_write_lock.reader_lock:
       value = self._cache.iat[await self.get_rownum(index), self._cache.columns.get_loc(col)]
-      if validate:
-        ta = self._field_type_adapters.get(col)
-        if ta is None:
-          raise RuntimeError("how the fuck")
-        return (ta, value)
       return value
 
   async def process_index(self, index):
@@ -347,8 +342,14 @@ class CacheViewBase[ModelT: CustomBaseModel]:
 
     return row_number
 
-  async def write_value(self, index, column, value: Any, ta: TypeAdapter) -> None:
+  async def write_value(self, index, column, value: Any) -> None:
     row_number = await self.get_rownum(index)
+
+    ta = self._field_type_adapters.get(column)
+    if ta is None:
+      raise RuntimeError("how the fuck")
+
+    value = ta.validate_python(value)
 
     value = ta.dump_python(value)
     sheets_value = ta.dump_python(value, mode="json")
@@ -412,7 +413,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
       )
     )
 
-  async def check_exists(self, index) -> bool:
+  async def check_uid_exists(self, index) -> bool:
     async with self._core._read_write_lock.reader_lock:
       return index in self._cache.index
 
@@ -425,14 +426,8 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   async def read_typed_row(self, index: DatabaseGuildsIndex, re_validate: bool = False) -> GuildDBEntryModel:
     return await super().read_typed_row(index, re_validate)
 
-  @overload
-  async def read_value(self, index: DatabaseGuildsIndex, col: DatabaseGuildsColumns, validate: Literal[False] = False) -> Any: ...
-
-  @overload
-  async def read_value(self, index: DatabaseGuildsIndex, col: DatabaseGuildsColumns, validate: Literal[True]) -> tuple[TypeAdapter[Any], Any]: ...
-
-  async def read_value(self, index: DatabaseGuildsIndex, col: DatabaseGuildsColumns, validate: bool = False) -> tuple[TypeAdapter[Any] | Any] | Any:
-    return await super().read_value(index, col, validate)
+  async def read_value(self, index: DatabaseGuildsIndex, col: DatabaseGuildsColumns) -> Any:
+    return await super().read_value(index, col)
 
   async def process_index(self, index: DatabaseGuildsIndex) -> DatabaseGuildsIndex:
     return await super().process_index(index)
@@ -440,8 +435,8 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   async def get_rownum(self, index: DatabaseGuildsIndex) -> int:
     return await super().get_rownum(index)
 
-  async def write_value(self, index: DatabaseGuildsIndex, column: DatabaseGuildsColumns, value: Any, ta: TypeAdapter) -> None:
-    return await super().write_value(index, column, value, ta)
+  async def write_value(self, index: DatabaseGuildsIndex, column: DatabaseGuildsColumns, value: Any) -> None:
+    return await super().write_value(index, column, value)
 
   async def update_row(self, index: DatabaseGuildsIndex, values: Sequence[Any] | GuildDBEntryModel) -> None:
     return await super().update_row(index, values)
@@ -449,8 +444,8 @@ class CacheViewGuilds(CacheViewBase[GuildDBEntryModel]):
   async def append_row(self, values: GuildDBEntryModel) -> None:
     return await super().append_row(values)
 
-  async def check_exists(self, index: DatabaseGuildsIndex) -> bool:
-    return await super().check_exists(index)
+  async def check_uid_exists(self, index: DatabaseGuildsIndex) -> bool:
+    return await super().check_uid_exists(index)
 
 
 class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
@@ -461,14 +456,8 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
   async def read_typed_row(self, index: DatabaseUsersIndex, re_validate: bool = False) -> UserDBEntryModel:
     return await super().read_typed_row(index, re_validate)
 
-  @overload
-  async def read_value(self, index: DatabaseUsersIndex, col: DatabaseUsersColumns, validate: Literal[False] = False) -> Any: ...
-
-  @overload
-  async def read_value(self, index: DatabaseUsersIndex, col: DatabaseUsersColumns, validate: Literal[True]) -> tuple[TypeAdapter[Any], Any]: ...
-
-  async def read_value(self, index: DatabaseUsersIndex, col: DatabaseUsersColumns, validate: bool = False) -> tuple[TypeAdapter[Any] | Any] | Any:
-    return await super().read_value(index, col, validate)
+  async def read_value(self, index: DatabaseUsersIndex, col: DatabaseUsersColumns) -> Any:
+    return await super().read_value(index, col)
 
   async def process_index(self, index: DatabaseUsersIndex) -> DatabaseUsersIndex:
     return await super().process_index(index)
@@ -487,8 +476,8 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
 
     return row_number
 
-  async def write_value(self, index: DatabaseUsersIndex, column: DatabaseUsersColumns, value: Any, ta: TypeAdapter) -> None:
-    return await super().write_value(index, column, value, ta)
+  async def write_value(self, index: DatabaseUsersIndex, column: DatabaseUsersColumns, value: Any) -> None:
+    return await super().write_value(index, column, value)
 
   async def update_row(self, index: DatabaseUsersIndex, values: Sequence[Any] | UserDBEntryModel) -> None:
     return await super().update_row(index, values)
@@ -496,8 +485,8 @@ class CacheViewUsers(CacheViewBase[UserDBEntryModel]):
   async def append_row(self, values: UserDBEntryModel) -> None:
     return await super().append_row(values)
 
-  async def check_exists(self, index: DatabaseUsersIndex) -> bool:
-    return await super().check_exists(index)
+  async def check_uid_exists(self, index: DatabaseUsersIndex) -> bool:
+    return await super().check_uid_exists(index)
 
 
 class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
@@ -508,18 +497,8 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
   async def read_typed_row(self, index: DatabaseCharactersIndex, re_validate: bool = False) -> CharacterDBEntryModel:
     return await super().read_typed_row(index, re_validate)
 
-  @overload
-  async def read_value(self, index: DatabaseCharactersIndex, col: DatabaseCharactersColumns, validate: Literal[False] = False) -> Any: ...
-
-  @overload
-  async def read_value(
-    self, index: DatabaseCharactersIndex, col: DatabaseCharactersColumns, validate: Literal[True]
-  ) -> tuple[TypeAdapter[Any], Any]: ...
-
-  async def read_value(
-    self, index: DatabaseCharactersIndex, col: DatabaseCharactersColumns, validate: bool = False
-  ) -> tuple[TypeAdapter[Any] | Any] | Any:
-    return await super().read_value(index, col, validate)
+  async def read_value(self, index: DatabaseCharactersIndex, col: DatabaseCharactersColumns) -> Any:
+    return await super().read_value(index, col)
 
   async def process_index(
     self, index: DatabaseCharactersIndex
@@ -582,8 +561,8 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
 
     return row_number
 
-  async def write_value(self, index: DatabaseCharactersIndex, column: DatabaseCharactersColumns, value: Any, ta: TypeAdapter) -> None:
-    return await super().write_value(index, column, value, ta)
+  async def write_value(self, index: DatabaseCharactersIndex, column: DatabaseCharactersColumns, value: Any) -> None:
+    return await super().write_value(index, column, value)
 
   async def update_row(self, index: DatabaseCharactersIndex, values: Sequence[Any] | CharacterDBEntryModel) -> None:
     return await super().update_row(index, values)
@@ -591,8 +570,14 @@ class CacheViewCharacters(CacheViewBase[CharacterDBEntryModel]):
   async def append_row(self, values: CharacterDBEntryModel) -> None:
     return await super().append_row(values)
 
-  async def check_exists(self, index: CharacterUID) -> bool:
+  async def check_uid_exists(self, index: CharacterUID) -> bool:
     async with self._core._read_write_lock.reader_lock:
       char_uids = self._cache.index.levels[0]  # type: ignore
 
       return index in char_uids
+
+  async def check_name_exists(self, user_id: UserID, character_name: CharacterName) -> bool:
+    async with self._core._read_write_lock.reader_lock:
+      char_names = self._cache.loc[(slice(None), user_id, slice(None), character_name), DatabaseCharactersColumns.character_name]
+
+      return not char_names.empty
