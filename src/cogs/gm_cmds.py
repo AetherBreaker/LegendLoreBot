@@ -11,8 +11,11 @@ from database.db_utils import ensure_user_exists
 from disnake import GuildCommandInteraction, User
 from disnake.ext.commands import Cog, Param, Range, slash_command
 from pydantic import ValidationError
+from typing_custom.dataframe_column_names import DatabaseCharactersColumns
 from typing_custom.enums import CustomEvent
 from validation.models.db_entries import CharacterDBEntryModel
+
+from cogs.cog_utils import run_ephemerally
 
 logger = getLogger(__name__)
 
@@ -87,24 +90,15 @@ class GMCommandsCog(Cog):
     character_name: str,
     milestone_amount: Range[int, 1, 176],
   ):
-    # TODO add checks to prevent adding more milestones than should be possible
-    if inter.user.id == player.id:
-      await inter.send("You can't change your own character's data. Get someone else to do it!")
-      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "milestones_amount", milestone_amount)
-      return
-
-    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
-
-    if character is None:
-      await inter.send("Character not found.")
-      return
-
-    character.milestones += milestone_amount
-    await self.bot.database.characters.update_row(character.character_uid, character)
-
-    await inter.send(f"Added {milestone_amount} milestones to character {character.character_name}. Total milestones: {character.milestones}")
-
-    self.bot.dispatch(CustomEvent.on_character_milestones_changed, inter.user, player, character_name, milestone_amount)
+    await self.do_attribute_math(
+      self.bot,
+      inter,
+      player,
+      character_name,
+      "Milestones",
+      DatabaseCharactersColumns.milestones,
+      milestone_amount,
+    )
 
   @milestones.sub_command(name="remove")
   async def milestones_remove(
@@ -114,25 +108,15 @@ class GMCommandsCog(Cog):
     character_name: str,
     milestone_amount: Range[int, 1, 176],
   ):
-    # TODO add checks to prevent removing more milestones than the character has
-
-    if inter.user.id == player.id:
-      await inter.send("You can't change your own character's data. Get someone else to do it!")
-      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "milestones_amount", -milestone_amount)
-      return
-
-    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
-
-    if character is None:
-      await inter.send("Character not found.")
-      return
-
-    character.milestones -= milestone_amount
-    await self.bot.database.characters.update_row(character.character_uid, character)
-
-    await inter.send(f"Removed {milestone_amount} milestones from character {character.character_name}. Total milestones: {character.milestones}")
-
-    self.bot.dispatch(CustomEvent.on_character_milestones_changed, inter.user, player, character_name, -milestone_amount)
+    await self.do_attribute_math(
+      self.bot,
+      inter,
+      player,
+      character_name,
+      "Milestones",
+      DatabaseCharactersColumns.milestones,
+      -milestone_amount,
+    )
 
   # Mythic Trials ###################################################################
 
@@ -147,23 +131,15 @@ class GMCommandsCog(Cog):
     character_name: str,
     trials_amount: int = Param(gt=0),
   ):
-    if inter.user.id == player.id:
-      await inter.send("You can't change your own character's data. Get someone else to do it!")
-      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "mythic_trials", trials_amount)
-      return
-
-    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
-
-    if character is None:
-      await inter.send("Character not found.")
-      return
-
-    character.mythic_trials += trials_amount
-    await self.bot.database.characters.update_row(character.character_uid, character)
-
-    await inter.send(f"Added {trials_amount} mythic trials to character {character.character_name}. Total mythic trials: {character.mythic_trials}")
-
-    self.bot.dispatch(CustomEvent.on_character_trials_changed, inter.user, player, character_name, trials_amount)
+    await self.do_attribute_math(
+      self.bot,
+      inter,
+      player,
+      character_name,
+      "Mythic Trials",
+      DatabaseCharactersColumns.mythic_trials,
+      trials_amount,
+    )
 
   @mythic_trials.sub_command(name="remove")
   async def trials_remove(
@@ -173,27 +149,15 @@ class GMCommandsCog(Cog):
     character_name: str,
     trials_amount: int = Param(gt=0),
   ):
-    # TODO add checks to prevent removing more trials than the character has
-
-    if inter.user.id == player.id:
-      await inter.send("You can't change your own character's data. Get someone else to do it!")
-      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "mythic_trials", -trials_amount)
-      return
-
-    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
-
-    if character is None:
-      await inter.send("Character not found.")
-      return
-
-    character.mythic_trials -= trials_amount
-    await self.bot.database.characters.update_row(character.character_uid, character)
-
-    await inter.send(
-      f"Removed {trials_amount} mythic trials from character {character.character_name}. Total mythic trials: {character.mythic_trials}"
+    await self.do_attribute_math(
+      self.bot,
+      inter,
+      player,
+      character_name,
+      "Mythic Trials",
+      DatabaseCharactersColumns.mythic_trials,
+      -trials_amount,
     )
-
-    self.bot.dispatch(CustomEvent.on_character_trials_changed, inter.user, player, character_name, -trials_amount)
 
   # Epic Deeds #####################################################################
 
@@ -208,23 +172,15 @@ class GMCommandsCog(Cog):
     character_name: str,
     deeds_amount: int = Param(gt=0),
   ):
-    if inter.user.id == player.id:
-      await inter.send("You can't change your own character's data. Get someone else to do it!")
-      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "epic_deeds", deeds_amount)
-      return
-
-    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
-
-    if character is None:
-      await inter.send("Character not found.")
-      return
-
-    character.epic_deeds += deeds_amount
-    await self.bot.database.characters.update_row(character.character_uid, character)
-
-    await inter.send(f"Added {deeds_amount} epic deeds to character {character.character_name}. Total epic deeds: {character.epic_deeds}")
-
-    self.bot.dispatch(CustomEvent.on_character_deeds_changed, inter.user, player, character_name, deeds_amount)
+    await self.do_attribute_math(
+      self.bot,
+      inter,
+      player,
+      character_name,
+      "Epic Deeds",
+      DatabaseCharactersColumns.epic_deeds,
+      deeds_amount,
+    )
 
   @epic.sub_command(name="remove")
   async def epic_remove(
@@ -234,24 +190,51 @@ class GMCommandsCog(Cog):
     character_name: str,
     deeds_amount: int = Param(gt=0),
   ):
-    # TODO add checks to prevent removing more deeds than the character has
-    if inter.user.id == player.id:
-      await inter.send("You can't change your own character's data. Get someone else to do it!")
-      self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "epic_deeds", -deeds_amount)
+    await self.do_attribute_math(
+      self.bot,
+      inter,
+      player,
+      character_name,
+      "Epic Deeds",
+      DatabaseCharactersColumns.epic_deeds,
+      -deeds_amount,
+    )
+
+  # Shared #########################################################################
+
+  async def do_attribute_math(
+    self,
+    bot: "LegendLoreBot",
+    inter: GuildCommandInteraction,
+    player: User,
+    character_name: str,
+    attr_type: Literal["Milestones", "Mythic Trials", "Epic Deeds"],
+    attribute: DatabaseCharactersColumns,
+    amount: int,
+  ):
+    run_ephemeral = await run_ephemerally(bot, inter)
+
+    try:
+      existing_val = await self.bot.database.characters.read_value((player.id, character_name), attribute)
+    except KeyError:
+      await inter.send(f'Character "{character_name}" not found.', ephemeral=run_ephemeral)
       return
 
-    character = await self.bot.database.characters.read_typed_row((player.id, character_name))
+    existing_val += amount
 
-    if character is None:
-      await inter.send("Character not found.")
+    if existing_val < 0:
+      await inter.send(
+        f"Cannot remove {abs(amount)} {attr_type} from character {character_name} as it would result in a negative value.", ephemeral=run_ephemeral
+      )
       return
 
-    character.epic_deeds -= deeds_amount
-    await self.bot.database.characters.update_row(character.character_uid, character)
+    await self.bot.database.characters.write_value((player.id, character_name), attribute, existing_val)
 
-    await inter.send(f"Removed {deeds_amount} epic deeds from character {character.character_name}. Total epic deeds: {character.epic_deeds}")
+    await inter.send(
+      f"{'Removed' if amount < 0 else 'Added'} {abs(amount)} {attr_type} {'from' if amount < 0 else 'to'} character {character_name}. New total {attr_type}: {existing_val}"
+    )
 
-    self.bot.dispatch(CustomEvent.on_character_deeds_changed, inter.user, player, character_name, -deeds_amount)
+    self.bot.dispatch(CustomEvent.on_character_attr_changed, locals())
 
   # Currency #######################################################################
 
