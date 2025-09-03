@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Literal
 from autocomplete.command_autocompleters import autocomp_other_charname
 from database.db_utils import ensure_user_exists
 from disnake import GuildCommandInteraction, User
-from disnake.ext.commands import Cog, Param, slash_command
+from disnake.ext.commands import Cog, Param, Range, slash_command
 from pydantic import ValidationError
 from typing_custom.enums import CustomEvent
 from validation.models.db_entries import CharacterDBEntryModel
@@ -85,7 +85,7 @@ class GMCommandsCog(Cog):
     inter: GuildCommandInteraction,
     player: User,
     character_name: str,
-    milestone_amount: int = Param(gt=0),
+    milestone_amount: Range[int, 1, 176],
   ):
     # TODO add checks to prevent adding more milestones than should be possible
     if inter.user.id == player.id:
@@ -112,7 +112,7 @@ class GMCommandsCog(Cog):
     inter: GuildCommandInteraction,
     player: User,
     character_name: str,
-    milestone_amount: int = Param(gt=0),
+    milestone_amount: Range[int, 1, 176],
   ):
     # TODO add checks to prevent removing more milestones than the character has
 
