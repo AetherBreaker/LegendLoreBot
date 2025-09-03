@@ -90,6 +90,7 @@ class GMCommandsCog(Cog):
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "milestones_amount", milestone_amount)
+      return
 
     character = await self.bot.database.characters.read_typed_row((player.id, character_name))
 
@@ -115,6 +116,7 @@ class GMCommandsCog(Cog):
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "milestones_amount", -milestone_amount)
+      return
 
     character = await self.bot.database.characters.read_typed_row((player.id, character_name))
 
@@ -145,6 +147,7 @@ class GMCommandsCog(Cog):
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "mythic_trials", trials_amount)
+      return
 
     character = await self.bot.database.characters.read_typed_row((player.id, character_name))
 
@@ -170,6 +173,7 @@ class GMCommandsCog(Cog):
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "mythic_trials", -trials_amount)
+      return
 
     character = await self.bot.database.characters.read_typed_row((player.id, character_name))
 
@@ -202,6 +206,7 @@ class GMCommandsCog(Cog):
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "epic_deeds", deeds_amount)
+      return
 
     character = await self.bot.database.characters.read_typed_row((player.id, character_name))
 
@@ -227,6 +232,7 @@ class GMCommandsCog(Cog):
     if inter.user.id == player.id:
       await inter.send("You can't change your own character's data. Get someone else to do it!")
       self.bot.dispatch(CustomEvent.on_attempted_change_own_data, inter.user, player, "epic_deeds", -deeds_amount)
+      return
 
     character = await self.bot.database.characters.read_typed_row((player.id, character_name))
 
