@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from autocomplete.command_autocompleters import autocomp_all_classnames, autocomp_char_classname, autocomp_self_charname
 from disnake import ApplicationCommandInteraction, Embed
-from disnake.ext.commands import Cog, Param, slash_command
+from disnake.ext.commands import Cog, Param, Range, slash_command
 from pydantic import ValidationError
 
 from cogs.cog_utils import run_ephemerally
@@ -160,7 +160,7 @@ class CharacterTrackingCog(Cog):
     inter: ApplicationCommandInteraction,
     character_name: str,
     class_name: str,
-    class_level: int = Param(gt=0, lt=21),
+    class_level: Range[int, 1, 20],
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
@@ -209,7 +209,7 @@ class CharacterTrackingCog(Cog):
     inter: ApplicationCommandInteraction,
     character_name: str,
     class_name: str,
-    class_level: int = Param(gt=0, lt=21),
+    class_level: Range[int, 1, 20],
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
