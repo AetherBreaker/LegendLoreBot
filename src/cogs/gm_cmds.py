@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Literal
 from autocomplete.command_autocompleters import autocomp_other_charname
 from database.db_utils import ensure_user_exists
 from disnake import GuildCommandInteraction, User
-from disnake.ext.commands import Cog, Param, Range, slash_command
+from disnake.ext.commands import Cog, Param, Range, contexts, default_member_permissions, install_types, slash_command
 from pydantic import ValidationError
 from typing_custom.dataframe_column_names import DatabaseCharactersColumns
 from typing_custom.enums import CustomEvent
@@ -29,6 +29,9 @@ class GMCommandsCog(Cog):
     self.bot = bot
 
   @slash_command()
+  @default_member_permissions(administrator=True)
+  @contexts(guild=True)
+  @install_types(guild=True)
   async def gm(self, _: GuildCommandInteraction): ...
 
   # Characters #####################################################################
