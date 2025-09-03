@@ -3,15 +3,16 @@ if __name__ == "__main__":
 
   configure_logging()
 
-from functools import partial
 from logging import getLogger
 from typing import TYPE_CHECKING, Literal, Optional
 
 from database.cache import DatabaseGuildsColumns
-from disnake import GuildCommandInteraction, SlashCommand
+from disnake import GuildCommandInteraction
 from disnake.abc import GuildChannel
-from disnake.ext.commands import Cog, Param, slash_command
+from disnake.ext.commands import Cog, Param, contexts, default_member_permissions, install_types, slash_command
 from validation.models.db_entries import GuildChannelEphemSettings
+
+from cogs.cog_utils import run_ephemerally
 
 if TYPE_CHECKING:
   from bot_base import LegendLoreBot
@@ -25,27 +26,53 @@ class StaffCommandsCog(Cog):
     self.bot = bot
 
   @slash_command()
+  @default_member_permissions(manage_channels=True)
+  @contexts(guild=True)
+  @install_types(guild=True)
   async def staff(self, inter: GuildCommandInteraction): ...
 
-  async def silence_commands_default(
+  @staff.sub_command_group()
+  async def silence_cmds(self, inter: GuildCommandInteraction): ...
+
+  @silence_cmds.sub_command()
+  async def server_default(
     self,
     inter: GuildCommandInteraction,
-    option: Literal["whitelist", "blacklist"] = Param(choices=["ephemeral", "normal"], default="ephemeral"),
+    option: Optional[Literal["ephemeral", "normal"]] = Param(choices=["ephemeral", "normal"], default=None),
   ):
     """
-    Sets whether the bot will default all channels to have ephemeral messages (ephemeral) or default all channels to have normal messages (normal).
+    Sets whether the bot will default all channels to have ephemeral messages or normal messages
 
+    Parameters
+    ----------
     option: Sets the default message type for all channels.
     """
+    run_ephemeral = await run_ephemerally(self.bot, inter)
 
-  @staff.sub_command()
-  async def channel_silence_cmds(
+    ta, guild_setting = await self.bot.database.guilds.read_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_default, validate=True)
+
+    match option:
+      case "ephemeral":
+        setting = True
+      case "normal":
+        setting = False
+      case None:
+        setting = not guild_setting
+
+    await self.bot.database.guilds.write_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_default, setting, ta=ta)
+
+    await inter.send(f"Silent execution mode default has been set to {'ephemeral' if setting else 'normal'}.", ephemeral=run_ephemeral)
+
+  @silence_cmds.sub_command()
+  async def toggle(
     self,
     inter: GuildCommandInteraction,
-    channel: Optional[GuildChannel] = None,
+    channel: Optional[GuildChannel] = None,  # type: ignore
     option: Optional[Literal["ephemeral", "normal", "unset"]] = Param(choices=["ephemeral", "normal", "unset"], default=None),
   ):
-    channel_id = inter.channel.id if channel is None else channel.id
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+
+    channel: GuildChannel = inter.channel if channel is None else channel  # type: ignore
 
     ta, guild_ephem_channel_settings = await self.bot.database.guilds.read_value(
       inter.guild_id, DatabaseGuildsColumns.channel_ephem_settings, validate=True
@@ -54,25 +81,29 @@ class StaffCommandsCog(Cog):
 
     # if setting is None, we flip whatever value already exists.
     # If no value exists for this channel, we set it to the opposite of the guild default
-    if option is not None and option != "unset":
-      setting = option == "ephemeral"
+    match option:
+      case "ephemeral":
+        setting = True
+      case "normal":
+        setting = False
+      case "unset":
+        setting = None
+      case _:
+        setting = not (
+          guild_ephem_channel_settings.root[channel.id]
+          if channel.id in guild_ephem_channel_settings.root
+          else await self.bot.database.guilds.read_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_default)
+        )
 
-    elif option is None:
-      setting_to_flip = (
-        guild_ephem_channel_settings.root[channel_id]
-        if channel_id in guild_ephem_channel_settings.root
-        else await self.bot.database.guilds.read_value(inter.guild_id, DatabaseGuildsColumns.channel_ephem_default)
+    if setting is None:
+      if channel.id in guild_ephem_channel_settings.root:
+        guild_ephem_channel_settings.root.pop(channel.id)
+      await inter.send(f"Channel {channel.jump_url} has been unset.", ephemeral=run_ephemeral)
+    else:
+      guild_ephem_channel_settings.root[channel.id] = setting
+      await inter.send(
+        f"Channel {channel.jump_url} has been set to {('ephemeral' if setting else 'normal') if option is None else option}.", ephemeral=run_ephemeral
       )
-      setting = not setting_to_flip
-
-    else:
-      setting = option
-
-    if setting == "unset":
-      if channel_id in guild_ephem_channel_settings.root:
-        guild_ephem_channel_settings.root.pop(channel_id)
-    else:
-      guild_ephem_channel_settings.root[channel_id] = setting
 
     await self.bot.database.guilds.write_value(
       inter.guild_id,
@@ -80,8 +111,6 @@ class StaffCommandsCog(Cog):
       ta.validate_python(guild_ephem_channel_settings),
       ta=ta,
     )
-
-    await inter.send(f"Channel {channel_id} has been set to {option}.")
 
 
 def setup(bot: "LegendLoreBot"):
