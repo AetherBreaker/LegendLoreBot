@@ -71,6 +71,8 @@ class GMCommandsCog(Cog):
       await inter.send(f"Character with UID {new_entry.character_uid} already exists.", ephemeral=run_ephemeral)
       raise ValueError("Character already exists")
 
+    if await self.bot.database.characters.check_name_exists(player.id, character_name):
+      await inter.send(f"Character with name {character_name} for {player.mention} already exists.", ephemeral=run_ephemeral)
       raise ValueError("Character already exists")
 
     await self.bot.database.characters.append_row(new_entry)
