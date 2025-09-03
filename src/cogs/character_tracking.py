@@ -70,7 +70,7 @@ class CharacterTrackingCog(Cog):
     if character.token_url is not None:
       embeds[0].set_thumbnail(url=str(character.token_url))
 
-    if character.images:
+    if character.images.root:
       embeds[0].set_image(url=character.images.root[0])
       embeds.extend(Embed().set_image(url=str(url)) for url in character.images.root[1:])
 
