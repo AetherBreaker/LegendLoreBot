@@ -58,12 +58,12 @@ async def autocomp_other_charname(cache: AutocompCache[set[CharacterName]], inte
   # Grab the singleton instance of our database accessor
   db = DatabaseCache()
 
-  user: User | None = inter.filled_options.get("player")
+  user: str | None = inter.filled_options.get("player")
 
   if user is None:
     return []
 
-  search_index = (slice(None), user.id, inter.guild_id, slice(None))
+  search_index = (slice(None), int(user), inter.guild_id, slice(None))
 
   cached_query = cache.get(search_index)
   if cached_query is None:
