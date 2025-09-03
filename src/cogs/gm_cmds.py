@@ -48,6 +48,7 @@ class GMCommandsCog(Cog):
     sheetlink: str,
     level_rate: Literal["medium", "slow"] = Param(choices=["medium", "slow"], default="medium"),
   ):
+    run_ephemeral = await run_ephemerally(self.bot, inter)
     # first we must check if the user exists in the database before we can add their character
     await ensure_user_exists(player, inter.guild)
 
@@ -63,11 +64,13 @@ class GMCommandsCog(Cog):
     except ValidationError as e:
       # TODO make errors explain why it failed
       logger.error(f"Failed to add character: {e}")
-      await inter.send(f"Failed to add character.\n {e}")
+      await inter.send(f"Failed to add character.\n {e}", ephemeral=run_ephemeral)
       raise e
 
-    if await self.bot.database.characters.check_exists(new_entry.character_uid):
-      await inter.send(f"Character with UID {new_entry.character_uid} already exists.")
+    if await self.bot.database.characters.check_uid_exists(new_entry.character_uid):
+      await inter.send(f"Character with UID {new_entry.character_uid} already exists.", ephemeral=run_ephemeral)
+      raise ValueError("Character already exists")
+
       raise ValueError("Character already exists")
 
     await self.bot.database.characters.append_row(new_entry)
@@ -77,7 +80,8 @@ class GMCommandsCog(Cog):
       f"Sheet Link: {new_entry.sheet_link}\n"
       f"Character UID: {new_entry.character_uid}\n"
       f"User ID: {new_entry.user_id}\n"
-      f"Guild ID: {new_entry.guild_id}\n"
+      f"Guild ID: {new_entry.guild_id}\n",
+      ephemeral=run_ephemeral,
     )
 
   # Milestones #####################################################################
