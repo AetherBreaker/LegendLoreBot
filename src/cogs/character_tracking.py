@@ -37,6 +37,17 @@ class CharacterTrackingCog(Cog):
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
+    try:
+      character = (
+        await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+        if inter.guild_id is None
+        else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+      )
+
+    except KeyError:
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
+      return
+
     guild = self.bot.get_guild(character.guild_id) if inter.guild_id is None else inter.guild
     if guild is None:
       guild = await self.bot.fetch_guild(character.guild_id)
@@ -87,6 +98,16 @@ class CharacterTrackingCog(Cog):
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
+    try:
+      character = (
+        await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+        if inter.guild_id is None
+        else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+      )
+
+    except KeyError:
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
+      return
 
     if character is None:
       await inter.send("Character not found.", ephemeral=run_ephemeral)
@@ -111,6 +132,16 @@ class CharacterTrackingCog(Cog):
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
+    try:
+      character = (
+        await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+        if inter.guild_id is None
+        else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+      )
+
+    except KeyError:
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
+      return
 
     if character is None:
       await inter.send("Character not found.", ephemeral=run_ephemeral)
@@ -138,6 +169,15 @@ class CharacterTrackingCog(Cog):
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
+    try:
+      character = (
+        await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+        if inter.guild_id is None
+        else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+      )
+    except KeyError:
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
+      return
 
     if character is None:
       await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
@@ -164,6 +204,25 @@ class CharacterTrackingCog(Cog):
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
+    try:
+      character = (
+        await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+        if inter.guild_id is None
+        else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+      )
+    except KeyError:
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
+      return
+
+    if character is None:
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
+      return
+
+    char_classes = character.classes
+
+    char_classes.root[class_name] = class_level
+
+    character.classes = char_classes  # Reassign to ensure validation
 
     if character is None:
       await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
@@ -186,6 +245,16 @@ class CharacterTrackingCog(Cog):
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
+    try:
+      character = (
+        await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+        if inter.guild_id is None
+        else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+      )
+
+    except KeyError:
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
+      return
 
     if character is None:
       await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
@@ -213,6 +282,15 @@ class CharacterTrackingCog(Cog):
   ):
     run_ephemeral = await run_ephemerally(self.bot, inter)
 
+    try:
+      character = (
+        await self.bot.database.characters.read_typed_row((inter.user.id, character_name))
+        if inter.guild_id is None
+        else await self.bot.database.characters.read_typed_row((inter.user.id, inter.guild_id, character_name))
+      )
+    except KeyError:
+      await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
+      return
 
     if character is None:
       await inter.send(f"Character {character_name} not found.", ephemeral=run_ephemeral)
