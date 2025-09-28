@@ -7,6 +7,7 @@ from logging import getLogger
 from typing import TYPE_CHECKING, Literal
 
 from autocomplete.command_autocompleters import autocomp_other_charname
+from database.cache import DatabaseUsersColumns
 from database.db_utils import ensure_user_exists
 from disnake import GuildCommandInteraction, User
 from disnake.ext.commands import Cog, Param, Range, contexts, default_member_permissions, install_types, slash_command
@@ -34,11 +35,51 @@ class GMCommandsCog(Cog):
   @install_types(guild=True)
   async def gm(self, _: GuildCommandInteraction): ...
 
+  # BC #############################################################################
+
+  @gm.sub_command_group()
+  async def bc(self, _: GuildCommandInteraction): ...
+
+  @bc.sub_command(name="add")
+  async def bc_add(
+    self,
+    inter: GuildCommandInteraction,
+    player: User,
+    amount: Range[int, 1, 1000000],
+  ):
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+    # first we must check if the user exists in the database before we can add their bc
+    await ensure_user_exists(player, inter.guild)
+
+    current_bc = await self.bot.database.users.read_value((player.id, inter.guild_id), DatabaseUsersColumns.server_money)
+    new_bc = current_bc + amount
+    await self.bot.database.users.write_value((player.id, inter.guild_id), DatabaseUsersColumns.server_money, new_bc)
+
+    await inter.send(f"Successfully added {amount} BC to {player.mention}. New BC total: {new_bc}", ephemeral=run_ephemeral)
+
+  @bc.sub_command(name="remove")
+  async def bc_remove(
+    self,
+    inter: GuildCommandInteraction,
+    player: User,
+    amount: Range[int, 1, 1000000],
+  ):
+    run_ephemeral = await run_ephemerally(self.bot, inter)
+    # first we must check if the user exists in the database before we can remove their bc
+    await ensure_user_exists(player, inter.guild)
+
+    current_bc = await self.bot.database.users.read_value((player.id, inter.guild_id), DatabaseUsersColumns.server_money)
+    new_bc = current_bc - amount
+    await self.bot.database.users.write_value((player.id, inter.guild_id), DatabaseUsersColumns.server_money, new_bc)
+
+    await inter.send(f"Successfully removed {amount} BC from {player.mention}. New BC total: {new_bc}", ephemeral=run_ephemeral)
+
   # Characters #####################################################################
 
   @gm.sub_command_group()
   async def characters(self, _: GuildCommandInteraction): ...
 
+  # TODO Consider unrestricting and moving to player commands
   @characters.sub_command(name="add")
   async def char_add(
     self,
