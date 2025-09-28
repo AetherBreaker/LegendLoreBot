@@ -10,7 +10,8 @@
             "request": "launch",
             "justMyCode": true,
             "program": "${workspaceFolder}/src/",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "pythonArgs": ["-X pycache_prefix=${workspaceFolder}/PYCACHE", "-u"]
         },
         {
             "name": "Current File",
@@ -22,7 +23,8 @@
             "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
-            }
+            },
+            "pythonArgs": ["-X pycache_prefix=${workspaceFolder}/PYCACHE", "-u"]
         },
         {
             "name": "Test Without Bot",
@@ -30,7 +32,8 @@
             "request": "launch",
             "justMyCode": true,
             "program": "${workspaceFolder}/src/exec_nobot.py",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "pythonArgs": ["-X pycache_prefix=${workspaceFolder}/PYCACHE", "-u"]
         }
     ]
 }
