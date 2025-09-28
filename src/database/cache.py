@@ -319,7 +319,7 @@ class CacheViewBase[ModelT: CustomBaseModel]:
     if re_validate:
       return self._model(**row)
     else:
-      return self._model.model_construct(**row)
+      return self._model.model_construct(**row)  # type: ignore
 
   async def read_value(self, index, col) -> Any:
     async with self._core._read_write_lock.reader_lock:
