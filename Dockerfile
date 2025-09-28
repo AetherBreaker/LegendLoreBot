@@ -47,7 +47,6 @@ USER appuser
 
 # Copy the source code into the container.
 COPY ./src ./src
-COPY ./bot-db-key.json ./bot-db-key.json
 
 
 # Run the application.
