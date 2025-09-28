@@ -144,12 +144,8 @@ INFO_LOG_LOC = LOG_LOC_FOLDER / f"{LOGGING_BASE_NAME}.log"
 LOGGING_TYPE: Literal["daily", "per_run"] = "daily"
 
 
-daily_debug_handler = TimedRotatingFileHandler(
-  DEBUG_LOG_LOC, when="midnight", backupCount=14, delay=True
-)
-daily_info_handler = TimedRotatingFileHandler(
-  INFO_LOG_LOC, when="midnight", backupCount=14, delay=True
-)
+daily_debug_handler = TimedRotatingFileHandler(DEBUG_LOG_LOC, when="midnight", backupCount=14, delay=True)
+daily_info_handler = TimedRotatingFileHandler(INFO_LOG_LOC, when="midnight", backupCount=14, delay=True)
 
 per_run_debug_handler = RotatingFileHandler(DEBUG_LOG_LOC, maxBytes=0, backupCount=30, delay=True)
 per_run_info_handler = RotatingFileHandler(INFO_LOG_LOC, maxBytes=0, backupCount=30, delay=True)
