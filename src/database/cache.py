@@ -6,8 +6,7 @@ if __name__ == "__main__":
 from asyncio import get_running_loop, sleep
 from collections.abc import Sequence
 from copy import deepcopy
-from io import StringIO
-from json import load, loads
+from json import loads
 from logging import getLogger
 from typing import Any, Optional
 
