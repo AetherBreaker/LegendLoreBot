@@ -9,6 +9,7 @@ from traceback import format_exception
 from cogs.character_tracking import CharacterTrackingCog
 from cogs.dbcache_refresh_hooks import DatabaseCacheCog
 from cogs.gm_cmds import GMCommandsCog
+from cogs.player_cmds import PlayerCommandsCog
 from cogs.staff_cmds import StaffCommandsCog
 from database.cache import DatabaseCache
 from database.db_utils import ensure_guild_exists
@@ -39,6 +40,7 @@ class LegendLoreBot(InteractionBot):
     self.add_cog(DatabaseCacheCog(self))
     self.add_cog(GMCommandsCog(self))
     self.add_cog(StaffCommandsCog(self))
+    self.add_cog(PlayerCommandsCog(self))
 
   async def on_ready(self):
     self.database = DatabaseCache()
