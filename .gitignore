@@ -242,3 +242,4 @@ $RECYCLE.BIN/
 logs/
 *.csv
 max_width.txt
+README.Docker.md
