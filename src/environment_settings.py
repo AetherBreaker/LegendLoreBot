@@ -25,6 +25,7 @@ class Settings(BaseSettings):
   )
 
   token: Annotated[str, Field(alias="TOKEN")]
+  google_api_key_data: Annotated[dict[str, str], Field(alias="GOOGLE_API_KEY_DATA")]
   database_id: Annotated[str, Field(alias="DATABASE_ID")]
   database_guilds_id: Annotated[str, Field(alias="DATABASE_GUILDS_ID")]
   database_users_id: Annotated[str, Field(alias="DATABASE_USERS_ID")]

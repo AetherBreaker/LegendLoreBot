@@ -6,6 +6,7 @@ if __name__ == "__main__":
 from asyncio import get_running_loop, sleep
 from collections.abc import Sequence
 from copy import deepcopy
+from json import loads
 from logging import getLogger
 from typing import Any, Optional
 
@@ -51,7 +52,9 @@ class DatabaseCache(metaclass=SingletonType):
   _tab_id_guilds = SETTINGS.database_guilds_id
   _tab_id_users = SETTINGS.database_users_id
   _tab_id_characters = SETTINGS.database_characters_id
-  _creds = Credentials.from_service_account_file(GOOGLE_API_KEY_FILE, scopes=DEFAULT_SCOPES)
+  _creds = Credentials.from_service_account_info(
+    loads(GOOGLE_API_KEY_FILE.read_text()) if __debug__ else SETTINGS.google_api_key_data, scopes=DEFAULT_SCOPES
+  )
 
   _guilds_tab_range = f"Guilds!R2C1:C{len(DatabaseGuildsColumns.all_columns())}"
   _users_tab_range = f"Users!R2C1:C{len(DatabaseUsersColumns.all_columns())}"
