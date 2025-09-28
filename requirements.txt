@@ -1,15 +1,7 @@
-debugpy
 pandas
 pandas-stubs
-pandasql
 pydantic
 pydantic-settings
-python-dateutil
-types-python-dateutil
-textual[syntax]
-textual-dev
-pypika
-paramiko
 rich
 disnake
 rapidfuzz
