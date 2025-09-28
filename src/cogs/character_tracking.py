@@ -29,6 +29,11 @@ class CharacterTrackingCog(Cog):
 
   # View character data
 
+  @characters.sub_command(name="list")
+  async def char_list(self, inter: ApplicationCommandInteraction):
+    # TODO
+    pass
+
   @characters.sub_command()
   async def status(
     self,
